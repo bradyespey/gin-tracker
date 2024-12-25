@@ -6,7 +6,19 @@ export function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Handle the OAuth callback
+    // Handle the hash fragment if present
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    
+    if (accessToken) {
+      // Set the session in Supabase
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: hashParams.get('refresh_token') || '',
+      });
+    }
+
+    // Listen for auth state change
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate('/gin');
