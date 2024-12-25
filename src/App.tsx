@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { NewGame } from './pages/NewGame';
 import { ImportGames } from './pages/ImportGames';
 import { Rules } from './pages/Rules';
+import { AuthCallback } from './pages/AuthCallback';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Navigate to="/gin" replace />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/gin" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="new" element={<NewGame />} />
