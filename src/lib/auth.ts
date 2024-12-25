@@ -30,7 +30,7 @@ export async function signOut() {
   if (error) throw error;
 }
 
-export function isAllowedEmail(email: string | undefined) {
+export function isAllowedEmail(email: string | undefined): boolean {
   if (!email) return false;
   const allowedEmails = import.meta.env.VITE_ALLOWED_EMAILS?.split(',') || [];
   return allowedEmails.includes(email);
