@@ -6,24 +6,30 @@ export function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Handle the hash fragment if present
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    
-    if (accessToken) {
-      // Set the session in Supabase
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: hashParams.get('refresh_token') || '',
-      });
-    }
+    async function handleAuthCallback() {
+      try {
+        // Get the session from the URL
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error.message);
+          throw error;
+        }
 
-    // Listen for auth state change
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+        if (session) {
+          // Successfully authenticated
+          navigate('/gin');
+        } else {
+          console.error('No session found');
+          navigate('/gin');
+        }
+      } catch (error) {
+        console.error('Auth callback error:', error);
         navigate('/gin');
       }
-    });
+    }
+
+    handleAuthCallback();
   }, [navigate]);
 
   return (

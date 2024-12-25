@@ -10,6 +10,7 @@ export async function signInWithGoogle() {
           access_type: 'offline',
           prompt: 'consent',
         },
+        skipBrowserRedirect: false // Ensure browser redirects after auth
       },
     });
     
