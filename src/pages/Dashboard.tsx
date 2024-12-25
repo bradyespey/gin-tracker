@@ -1,0 +1,73 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { PlusCircle, Import } from 'lucide-react';
+
+export function Dashboard() {
+  const stats = {
+    bradyScore: 548,
+    jennyScore: 526,
+    totalGames: 30,
+    bradyWins: 15,
+    jennyWins: 15,
+    lastUpdated: new Date().toLocaleDateString()
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Overall Score</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Brady</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.bradyScore}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Jenny</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.jennyScore}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Game Stats</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Games</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalGames}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Brady Wins</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.bradyWins}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Jenny Wins</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.jennyWins}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <Link
+          to="/gin/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <PlusCircle className="h-5 w-5 mr-2" />
+          New Game
+        </Link>
+        <Link
+          to="/gin/import"
+          className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <Import className="h-5 w-5 mr-2" />
+          Import Games
+        </Link>
+      </div>
+
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Last updated: {stats.lastUpdated}
+      </p>
+    </div>
+  );
+}
