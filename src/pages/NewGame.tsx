@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { AuthGuard } from '../components/AuthGuard';
 import { GameForm } from '../components/GameForm';
+import { getLocalDate } from '../utils/dateUtils';
 import type { GameFormData } from '../types/game';
 
 export function NewGame() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<GameFormData>({
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDate(),
     winner: 'Brady',
     went_first: 'Brady',
     knock: false,
+    score: 25
   });
 
   // Fetch last game to set default went_first
@@ -39,14 +41,12 @@ export function NewGame() {
     setLoading(true);
 
     try {
-      const score = formData.knock ? (formData.deadwood_difference || 0) : 25;
-      
       const { error } = await supabase.from('games').insert([{
         date: formData.date,
         winner: formData.winner,
         went_first: formData.went_first,
         knock: formData.knock,
-        score,
+        score: formData.knock ? (formData.deadwood_difference || 0) : (formData.score || 25),
         deadwood_difference: formData.deadwood_difference,
         undercut_by: formData.undercut_by || null
       }]);

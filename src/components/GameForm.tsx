@@ -46,7 +46,6 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Date field */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Date
@@ -59,7 +58,95 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
           />
         </div>
 
-        {/* Other fields remain the same... */}
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Winner
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleChange({ winner: 'Brady' })}
+              className={`px-4 py-2 rounded-lg border ${
+                data.winner === 'Brady'
+                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                  : 'border-slate-700 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              Brady
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChange({ winner: 'Jenny' })}
+              className={`px-4 py-2 rounded-lg border ${
+                data.winner === 'Jenny'
+                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                  : 'border-slate-700 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              Jenny
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Went First
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleChange({ went_first: 'Brady' })}
+              className={`px-4 py-2 rounded-lg border ${
+                data.went_first === 'Brady'
+                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                  : 'border-slate-700 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              Brady
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChange({ went_first: 'Jenny' })}
+              className={`px-4 py-2 rounded-lg border ${
+                data.went_first === 'Jenny'
+                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                  : 'border-slate-700 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              Jenny
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Game End
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleChange({ knock: false })}
+              className={`px-4 py-2 rounded-lg border ${
+                !data.knock
+                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                  : 'border-slate-700 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              Gin
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChange({ knock: true })}
+              className={`px-4 py-2 rounded-lg border ${
+                data.knock
+                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                  : 'border-slate-700 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              Knock
+            </button>
+          </div>
+        </div>
 
         {!data.knock && (
           <div>
@@ -73,13 +160,69 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                 const value = e.target.value === '' ? undefined : parseInt(e.target.value);
                 handleChange({ score: value });
               }}
-              min={25}
               className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
         )}
 
-        {/* Rest of the fields remain the same... */}
+        {data.knock && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Deadwood Difference
+              </label>
+              <input
+                type="number"
+                value={data.deadwood_difference === undefined ? '' : data.deadwood_difference}
+                onChange={e => handleChange({ 
+                  deadwood_difference: e.target.value === '' ? undefined : parseInt(e.target.value)
+                })}
+                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Undercut By
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleChange({ undercut_by: undefined })}
+                  className={`px-4 py-2 rounded-lg border ${
+                    !data.undercut_by
+                      ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                  }`}
+                >
+                  None
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChange({ undercut_by: 'Brady' })}
+                  className={`px-4 py-2 rounded-lg border ${
+                    data.undercut_by === 'Brady'
+                      ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                  }`}
+                >
+                  Brady
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChange({ undercut_by: 'Jenny' })}
+                  className={`px-4 py-2 rounded-lg border ${
+                    data.undercut_by === 'Jenny'
+                      ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                  }`}
+                >
+                  Jenny
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

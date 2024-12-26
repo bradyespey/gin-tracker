@@ -63,7 +63,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
       const { error } = await supabase
         .from('games')
         .delete()
-        .match({ id });
+        .eq('id', id);
 
       if (error) throw error;
       onUpdate();
@@ -106,7 +106,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
       const { error } = await supabase
         .from('games')
         .update(updates)
-        .match({ id: editingGame.id });
+        .eq('id', editingGame.id);
 
       if (error) throw error;
       
