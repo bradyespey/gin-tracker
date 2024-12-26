@@ -10,11 +10,12 @@ interface GameListProps {
   onUpdate: () => void;
 }
 
-type SortField = 'date' | 'winner' | 'score' | 'went_first';
+type SortField = 'date' | 'winner' | 'score' | 'went_first' | 'knock' | 'undercut_by';
 type SortDirection = 'asc' | 'desc';
 
 export function GameList({ games, onUpdate }: GameListProps) {
   const [editingGame, setEditingGame] = useState<Game | null>(null);
+  const [editFormData, setEditFormData] = useState<GameFormData | null>(null);
   const [loading, setLoading] = useState(false);
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -31,16 +32,24 @@ export function GameList({ games, onUpdate }: GameListProps) {
 
   const sortedGames = [...games].sort((a, b) => {
     const modifier = sortDirection === 'asc' ? 1 : -1;
-    const aValue = a[sortField];
-    const bValue = b[sortField];
     
-    if (sortField === 'date') {
-      return (new Date(aValue as string).getTime() - new Date(bValue as string).getTime()) * modifier;
+    switch (sortField) {
+      case 'date':
+        return (new Date(a.date).getTime() - new Date(b.date).getTime()) * modifier;
+      case 'knock':
+        return (Number(a.knock) - Number(b.knock)) * modifier;
+      case 'undercut_by':
+        const aVal = a.undercut_by || '';
+        const bVal = b.undercut_by || '';
+        return aVal.localeCompare(bVal) * modifier;
+      default:
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return aValue.localeCompare(bValue) * modifier;
+        }
+        return ((aValue as number) - (bValue as number)) * modifier;
     }
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return aValue.localeCompare(bValue) * modifier;
-    }
-    return ((aValue as number) - (bValue as number)) * modifier;
   });
 
   const handleDelete = async (id: string) => {
@@ -59,28 +68,41 @@ export function GameList({ games, onUpdate }: GameListProps) {
     }
   };
 
-  const handleSave = async (formData: GameFormData) => {
-    if (!editingGame) return;
+  const handleEdit = (game: Game) => {
+    setEditingGame(game);
+    setEditFormData({
+      date: game.date,
+      winner: game.winner,
+      went_first: game.went_first,
+      knock: game.knock,
+      deadwood_difference: game.deadwood_difference,
+      undercut_by: game.undercut_by || undefined
+    });
+  };
+
+  const handleSave = async () => {
+    if (!editingGame || !editFormData) return;
     setLoading(true);
 
     try {
-      const score = formData.knock ? (formData.deadwood_difference || 0) : 25;
+      const score = editFormData.knock ? (editFormData.deadwood_difference || 0) : 25;
       
       const { error } = await supabase
         .from('games')
         .update({
-          date: formData.date,
-          winner: formData.winner,
-          went_first: formData.went_first,
-          knock: formData.knock,
+          date: editFormData.date,
+          winner: editFormData.winner,
+          went_first: editFormData.went_first,
+          knock: editFormData.knock,
           score,
-          deadwood_difference: formData.deadwood_difference,
-          undercut_by: formData.undercut_by || null
+          deadwood_difference: editFormData.deadwood_difference,
+          undercut_by: editFormData.undercut_by || null
         })
         .eq('id', editingGame.id);
 
       if (error) throw error;
       setEditingGame(null);
+      setEditFormData(null);
       onUpdate();
     } catch (error) {
       console.error('Error updating game:', error);
@@ -100,14 +122,17 @@ export function GameList({ games, onUpdate }: GameListProps) {
     </button>
   );
 
-  if (editingGame) {
+  if (editingGame && editFormData) {
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div className="bg-slate-900 rounded-xl p-6 w-full max-w-3xl">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-slate-100">Edit Game</h2>
             <button
-              onClick={() => setEditingGame(null)}
+              onClick={() => {
+                setEditingGame(null);
+                setEditFormData(null);
+              }}
               className="text-slate-400 hover:text-slate-300"
             >
               <X className="h-6 w-6" />
@@ -115,26 +140,22 @@ export function GameList({ games, onUpdate }: GameListProps) {
           </div>
 
           <GameForm
-            data={{
-              date: editingGame.date,
-              winner: editingGame.winner,
-              went_first: editingGame.went_first,
-              knock: editingGame.knock,
-              deadwood_difference: editingGame.deadwood_difference,
-              undercut_by: editingGame.undercut_by || undefined
-            }}
-            onChange={handleSave}
+            data={editFormData}
+            onChange={updates => setEditFormData(prev => prev ? { ...prev, ...updates } : prev)}
           />
 
           <div className="flex justify-end gap-4 mt-6">
             <button
-              onClick={() => setEditingGame(null)}
+              onClick={() => {
+                setEditingGame(null);
+                setEditFormData(null);
+              }}
               className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800"
             >
               Cancel
             </button>
             <button
-              onClick={() => handleSave}
+              onClick={handleSave}
               disabled={loading}
               className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
             >
@@ -163,8 +184,12 @@ export function GameList({ games, onUpdate }: GameListProps) {
             <th className="py-3 px-4 text-left">
               <SortButton field="went_first">First Player</SortButton>
             </th>
-            <th className="py-3 px-4 text-left">Type</th>
-            <th className="py-3 px-4 text-left">Undercut</th>
+            <th className="py-3 px-4 text-left">
+              <SortButton field="knock">Type</SortButton>
+            </th>
+            <th className="py-3 px-4 text-left">
+              <SortButton field="undercut_by">Undercut</SortButton>
+            </th>
             <th className="py-3 px-4 text-right">Actions</th>
           </tr>
         </thead>
@@ -188,7 +213,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
               </td>
               <td className="py-3 px-4 text-right space-x-2">
                 <button
-                  onClick={() => setEditingGame(game)}
+                  onClick={() => handleEdit(game)}
                   className="text-slate-400 hover:text-slate-300"
                 >
                   <Pencil className="h-4 w-4" />
