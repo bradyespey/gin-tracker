@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase';
 import { GameActions } from './GameActions';
 import { SortButton } from './SortButton';
 import { EditGameModal } from './EditGameModal';
-import { calculateScore } from '../utils/gameUtils';
 import type { Game, GameFormData } from '../types/game';
 
 interface GameListProps {
@@ -61,12 +60,11 @@ export function GameList({ games, onUpdate }: GameListProps) {
     }
 
     try {
-      const { error } = await supabase
+      await supabase
         .from('games')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
       onUpdate();
     } catch (error) {
       console.error('Error deleting game:', error);
@@ -94,22 +92,24 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
 
     try {
+      const score = editFormData.knock 
+        ? (editFormData.deadwood_difference || 0)
+        : (editFormData.score || 25);
+
       const updates = {
         date: editFormData.date,
         winner: editFormData.winner,
         went_first: editFormData.went_first,
         knock: editFormData.knock,
-        score: calculateScore(editFormData),
+        score,
         deadwood_difference: editFormData.deadwood_difference,
         undercut_by: editFormData.undercut_by || null
       };
 
-      const { error } = await supabase
+      await supabase
         .from('games')
         .update(updates)
         .eq('id', editingGame.id);
-
-      if (error) throw error;
       
       setEditingGame(null);
       setEditFormData(null);
