@@ -30,9 +30,14 @@ export function GameList({ games, onUpdate }: GameListProps) {
       const { error } = await supabase
         .from('games')
         .delete()
+        .single()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
+      
       onUpdate();
     } catch (error) {
       console.error('Error deleting game:', error);
@@ -57,7 +62,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingGame?.id || !editFormData) return;
+    if (!editingGame || !editFormData) return;
     setLoading(true);
 
     try {
@@ -75,6 +80,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
         .eq('id', editingGame.id);
 
       if (error) throw error;
+      
       onUpdate();
       setEditingGame(null);
       setEditFormData(null);
@@ -94,58 +100,69 @@ export function GameList({ games, onUpdate }: GameListProps) {
   };
 
   const sortedGames = [...games].sort((a, b) => {
-    const direction = sortConfig.direction === 'asc' ? 1 : -1;
-    if (a[sortConfig.key] < b[sortConfig.key]) return -1 * direction;
-    if (a[sortConfig.key] > b[sortConfig.key]) return 1 * direction;
-    return 0;
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+    
+    if (aValue === bValue) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+    
+    const modifier = sortConfig.direction === 'asc' ? 1 : -1;
+    return aValue < bValue ? -1 * modifier : 1 * modifier;
   });
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
-        <thead>
-          <tr className="border-b border-slate-700/50">
-            <th className="py-3 text-left">
+        <thead className="bg-slate-800/50">
+          <tr>
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('date')}>
                 Date
               </SortButton>
             </th>
-            <th className="py-3 text-left">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('winner')}>
                 Winner
               </SortButton>
             </th>
-            <th className="py-3 text-left">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('score')}>
                 Score
               </SortButton>
             </th>
-            <th className="py-3 text-left">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('went_first')}>
                 First Player
               </SortButton>
             </th>
-            <th className="py-3 text-left">Type</th>
-            <th className="py-3 text-left">Undercut</th>
-            <th className="py-3 text-right">Actions</th>
+            <th className="px-6 py-3 text-left">Type</th>
+            <th className="px-6 py-3 text-left">Undercut</th>
+            <th className="px-6 py-3 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-700/50">
           {sortedGames.map((game) => (
-            <tr key={game.id} className="border-b border-slate-800/50">
-              <td className="py-3 text-slate-300">
+            <tr key={game.id} className="hover:bg-slate-800/30">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {formatDateForDisplay(game.date)}
               </td>
-              <td className="py-3 text-slate-300">{game.winner}</td>
-              <td className="py-3 text-slate-300">{game.score}</td>
-              <td className="py-3 text-slate-300">{game.went_first}</td>
-              <td className="py-3 text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
+                {game.winner}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {game.score}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {game.went_first}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
                 {game.knock ? 'Knock' : 'Gin'}
               </td>
-              <td className="py-3 text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {game.undercut_by || '-'}
               </td>
-              <td className="py-3 text-right">
+              <td className="px-6 py-4 whitespace-nowrap text-right">
                 <GameActions
                   onEdit={() => handleEdit(game)}
                   onDelete={() => handleDelete(game.id)}
@@ -166,7 +183,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
             setEditFormData(null);
           }}
           onSave={handleSaveEdit}
-          onChange={updates => setEditFormData(prev => ({ ...prev!, ...updates }))}
+          onChange={updates => setEditFormData(prev => prev ? { ...prev, ...updates } : null)}
           loading={loading}
         />
       )}
