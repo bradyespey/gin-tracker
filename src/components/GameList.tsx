@@ -17,6 +17,29 @@ export function GameList({ games, onUpdate }: GameListProps) {
   const [editingGame, setEditingGame] = useState<Game | null>(null);
   const [editFormData, setEditFormData] = useState<GameFormData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Game;
+    direction: 'asc' | 'desc';
+  }>({ key: 'date', direction: 'desc' });
+
+  const handleDelete = async (id: string) => {
+    if (!id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('games')
+        .delete()
+        .match({ id });
+
+      if (error) throw error;
+      onUpdate();
+    } catch (error) {
+      console.error('Error deleting game:', error);
+      alert('Error deleting game. Please try again.');
+    } finally {
+      setDeleteConfirm(null);
+    }
+  };
 
   const handleEdit = (game: Game) => {
     setEditingGame(game);
@@ -31,13 +54,11 @@ export function GameList({ games, onUpdate }: GameListProps) {
     });
   };
 
-  const handleSave = async () => {
+  const handleSaveEdit = async () => {
     if (!editingGame || !editFormData) return;
     setLoading(true);
 
     try {
-      const score = calculateScore(editFormData);
-      
       const { error } = await supabase
         .from('games')
         .update({
@@ -45,17 +66,16 @@ export function GameList({ games, onUpdate }: GameListProps) {
           winner: editFormData.winner,
           went_first: editFormData.went_first,
           knock: editFormData.knock,
-          score,
+          score: calculateScore(editFormData),
           deadwood_difference: editFormData.deadwood_difference,
           undercut_by: editFormData.undercut_by || null
         })
-        .eq('id', editingGame.id);
+        .match({ id: editingGame.id });
 
       if (error) throw error;
-
+      onUpdate();
       setEditingGame(null);
       setEditFormData(null);
-      onUpdate();
     } catch (error) {
       console.error('Error updating game:', error);
       alert('Error updating game. Please try again.');
@@ -64,76 +84,75 @@ export function GameList({ games, onUpdate }: GameListProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (deleteConfirm !== id) {
-      setDeleteConfirm(id);
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('games')
-        .delete()
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-
-      onUpdate();
-    } catch (error) {
-      console.error('Error deleting game:', error);
-      alert('Error deleting game. Please try again.');
-    } finally {
-      setDeleteConfirm(null);
-    }
+  const handleSort = (key: keyof Game) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
+  const sortedGames = [...games].sort((a, b) => {
+    const direction = sortConfig.direction === 'asc' ? 1 : -1;
+    if (a[sortConfig.key] < b[sortConfig.key]) return -1 * direction;
+    if (a[sortConfig.key] > b[sortConfig.key]) return 1 * direction;
+    return 0;
+  });
+
   return (
-    <>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-700/50">
-              <th className="py-3 px-4 text-left">
-                <SortButton onClick={() => {}}>Date</SortButton>
-              </th>
-              <th className="py-3 px-4 text-left">
-                <SortButton onClick={() => {}}>Winner</SortButton>
-              </th>
-              <th className="py-3 px-4 text-left">
-                <SortButton onClick={() => {}}>Score</SortButton>
-              </th>
-              <th className="py-3 px-4 text-left">First Player</th>
-              <th className="py-3 px-4 text-left">Type</th>
-              <th className="py-3 px-4 text-left">Undercut</th>
-              <th className="py-3 px-4 text-right">Actions</th>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-slate-700">
+        <thead className="bg-slate-800/50">
+          <tr>
+            <th className="px-6 py-3 text-left">
+              <SortButton onClick={() => handleSort('date')}>Date</SortButton>
+            </th>
+            <th className="px-6 py-3 text-left">
+              <SortButton onClick={() => handleSort('winner')}>Winner</SortButton>
+            </th>
+            <th className="px-6 py-3 text-left">
+              <SortButton onClick={() => handleSort('score')}>Score</SortButton>
+            </th>
+            <th className="px-6 py-3 text-left">
+              <SortButton onClick={() => handleSort('went_first')}>First Player</SortButton>
+            </th>
+            <th className="px-6 py-3 text-left">Type</th>
+            <th className="px-6 py-3 text-left">Undercut</th>
+            <th className="px-6 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-700">
+          {sortedGames.map((game) => (
+            <tr key={game.id} className="hover:bg-slate-800/30">
+              <td className="px-6 py-4 whitespace-nowrap text-slate-200">
+                {formatDateForDisplay(game.date)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-200">
+                {game.winner}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-200">
+                {game.score}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-200">
+                {game.went_first}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-200">
+                {game.knock ? 'Knock' : 'Gin'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-200">
+                {game.undercut_by || '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                <GameActions
+                  onEdit={() => handleEdit(game)}
+                  onDelete={() => handleDelete(game.id)}
+                  showConfirm={deleteConfirm === game.id}
+                  onCancelDelete={() => setDeleteConfirm(null)}
+                />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {games.map((game) => (
-              <tr 
-                key={game.id} 
-                className="border-b border-slate-700/50 text-slate-300 hover:bg-slate-800/50"
-              >
-                <td className="py-3 px-4">{formatDateForDisplay(game.date)}</td>
-                <td className="py-3 px-4">{game.winner}</td>
-                <td className="py-3 px-4">{game.score}</td>
-                <td className="py-3 px-4">{game.went_first}</td>
-                <td className="py-3 px-4">{game.knock ? 'Knock' : 'Gin'}</td>
-                <td className="py-3 px-4">{game.undercut_by || '-'}</td>
-                <td className="py-3 px-4 text-right">
-                  <GameActions
-                    onEdit={() => handleEdit(game)}
-                    onDelete={() => handleDelete(game.id)}
-                    showConfirm={deleteConfirm === game.id}
-                    onCancelDelete={() => setDeleteConfirm(null)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
 
       {editingGame && editFormData && (
         <EditGameModal
@@ -142,11 +161,11 @@ export function GameList({ games, onUpdate }: GameListProps) {
             setEditingGame(null);
             setEditFormData(null);
           }}
-          onSave={handleSave}
+          onSave={handleSaveEdit}
           onChange={updates => setEditFormData(prev => prev ? { ...prev, ...updates } : null)}
           loading={loading}
         />
       )}
-    </>
+    </div>
   );
 }
