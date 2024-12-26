@@ -77,6 +77,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
       winner: game.winner,
       went_first: game.went_first,
       knock: game.knock,
+      score: game.knock ? undefined : game.score,
       deadwood_difference: game.deadwood_difference,
       undercut_by: game.undercut_by || undefined
     });
@@ -88,7 +89,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
 
     try {
       const score = calculateScore(editFormData);
-      
+
       const { error } = await supabase
         .from('games')
         .update({
@@ -154,22 +155,22 @@ export function GameList({ games, onUpdate }: GameListProps) {
               <th className="py-3 px-4 text-right text-slate-400">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-slate-300">
             {sortedGames.map((game) => (
               <tr 
                 key={game.id}
                 className="border-b border-slate-800 hover:bg-slate-800/50"
               >
-                <td className="py-3 px-4 text-slate-300">
+                <td className="py-3 px-4">
                   {format(new Date(game.date), 'MMM d, yyyy')}
                 </td>
-                <td className="py-3 px-4 text-slate-300">{game.winner}</td>
-                <td className="py-3 px-4 text-slate-300">{game.score}</td>
-                <td className="py-3 px-4 text-slate-300">{game.went_first}</td>
-                <td className="py-3 px-4 text-slate-300">
+                <td className="py-3 px-4">{game.winner}</td>
+                <td className="py-3 px-4">{game.score}</td>
+                <td className="py-3 px-4">{game.went_first}</td>
+                <td className="py-3 px-4">
                   {game.knock ? 'Knock' : 'Gin'}
                 </td>
-                <td className="py-3 px-4 text-slate-300">
+                <td className="py-3 px-4">
                   {game.undercut_by || '-'}
                 </td>
                 <td className="py-3 px-4 text-right">

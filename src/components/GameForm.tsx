@@ -10,13 +10,21 @@ interface GameFormProps {
 
 export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps) {
   const handleChange = (updates: Partial<GameFormData>) => {
-    // If changing from knock to gin, clear knock-specific fields
-    if ('knock' in updates && !updates.knock) {
-      onChange({
-        ...updates,
-        deadwood_difference: undefined,
-        undercut_by: undefined
-      });
+    if ('knock' in updates) {
+      if (updates.knock) {
+        onChange({
+          ...updates,
+          score: undefined,
+          deadwood_difference: 0
+        });
+      } else {
+        onChange({
+          ...updates,
+          score: 25,
+          deadwood_difference: undefined,
+          undercut_by: undefined
+        });
+      }
     } else {
       onChange(updates);
     }
@@ -140,6 +148,22 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
           </div>
         </div>
 
+        {!data.knock && (
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Score
+            </label>
+            <input
+              type="number"
+              value={data.score || 25}
+              onChange={e => handleChange({ 
+                score: parseInt(e.target.value) || 25
+              })}
+              className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        )}
+
         {data.knock && (
           <>
             <div>
@@ -148,9 +172,9 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
               </label>
               <input
                 type="number"
-                value={data.deadwood_difference || ''}
+                value={data.deadwood_difference || 0}
                 onChange={e => handleChange({ 
-                  deadwood_difference: e.target.value ? parseInt(e.target.value) : undefined
+                  deadwood_difference: parseInt(e.target.value) || 0
                 })}
                 className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
