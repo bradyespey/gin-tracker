@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase';
 import { GameActions } from './GameActions';
 import { SortButton } from './SortButton';
 import { EditGameModal } from './EditGameModal';
-import { calculateScore } from '../utils/gameUtils';
 import type { Game, GameFormData } from '../types/game';
 
 interface GameListProps {
@@ -55,18 +54,24 @@ export function GameList({ games, onUpdate }: GameListProps) {
   });
 
   const handleDelete = async (id: string) => {
+    if (!deleteConfirm) {
+      setDeleteConfirm(id);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('games')
         .delete()
-        .eq('id', id);
+        .match({ id });
 
       if (error) throw error;
       onUpdate();
-      setDeleteConfirm(null);
     } catch (error) {
       console.error('Error deleting game:', error);
       alert('Error deleting game. Please try again.');
+    } finally {
+      setDeleteConfirm(null);
     }
   };
 
@@ -77,7 +82,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
       winner: game.winner,
       went_first: game.went_first,
       knock: game.knock,
-      score: game.knock ? undefined : game.score,
+      score: game.score,
       deadwood_difference: game.deadwood_difference,
       undercut_by: game.undercut_by || undefined
     });
@@ -88,22 +93,23 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
 
     try {
-      const score = calculateScore(editFormData);
+      const updates = {
+        date: editFormData.date,
+        winner: editFormData.winner,
+        went_first: editFormData.went_first,
+        knock: editFormData.knock,
+        score: editFormData.knock ? (editFormData.deadwood_difference || 0) : (editFormData.score || 25),
+        deadwood_difference: editFormData.deadwood_difference,
+        undercut_by: editFormData.undercut_by || null
+      };
 
       const { error } = await supabase
         .from('games')
-        .update({
-          date: editFormData.date,
-          winner: editFormData.winner,
-          went_first: editFormData.went_first,
-          knock: editFormData.knock,
-          score,
-          deadwood_difference: editFormData.deadwood_difference,
-          undercut_by: editFormData.undercut_by || null
-        })
-        .eq('id', editingGame.id);
+        .update(updates)
+        .match({ id: editingGame.id });
 
       if (error) throw error;
+      
       setEditingGame(null);
       setEditFormData(null);
       onUpdate();
@@ -125,7 +131,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
             setEditFormData(null);
           }}
           onSave={handleSave}
-          onChange={updates => setEditFormData(prev => prev ? { ...prev, ...updates } : prev)}
+          onChange={setEditFormData}
           loading={loading}
         />
       )}
