@@ -9,9 +9,17 @@ interface GameFormProps {
 }
 
 export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps) {
-  const calculateScore = () => {
-    if (!data.knock) return 25; // Gin bonus
-    return data.deadwood_difference || 0;
+  const handleChange = (updates: Partial<GameFormData>) => {
+    // If changing from knock to gin, clear knock-specific fields
+    if ('knock' in updates && !updates.knock) {
+      onChange({
+        ...updates,
+        deadwood_difference: undefined,
+        undercut_by: undefined
+      });
+    } else {
+      onChange(updates);
+    }
   };
 
   return (
@@ -37,7 +45,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
           <input
             type="date"
             value={data.date}
-            onChange={e => onChange({ date: e.target.value })}
+            onChange={e => handleChange({ date: e.target.value })}
             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
@@ -49,7 +57,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => onChange({ winner: 'Brady' })}
+              onClick={() => handleChange({ winner: 'Brady' })}
               className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                 data.winner === 'Brady'
                   ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -60,7 +68,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
             </button>
             <button
               type="button"
-              onClick={() => onChange({ winner: 'Jenny' })}
+              onClick={() => handleChange({ winner: 'Jenny' })}
               className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                 data.winner === 'Jenny'
                   ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -79,7 +87,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => onChange({ went_first: 'Brady' })}
+              onClick={() => handleChange({ went_first: 'Brady' })}
               className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                 data.went_first === 'Brady'
                   ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -90,7 +98,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
             </button>
             <button
               type="button"
-              onClick={() => onChange({ went_first: 'Jenny' })}
+              onClick={() => handleChange({ went_first: 'Jenny' })}
               className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                 data.went_first === 'Jenny'
                   ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -109,7 +117,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => onChange({ knock: false })}
+              onClick={() => handleChange({ knock: false })}
               className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                 !data.knock
                   ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -120,7 +128,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
             </button>
             <button
               type="button"
-              onClick={() => onChange({ knock: true })}
+              onClick={() => handleChange({ knock: true })}
               className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                 data.knock
                   ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -141,8 +149,8 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
               <input
                 type="number"
                 value={data.deadwood_difference || ''}
-                onChange={e => onChange({ 
-                  deadwood_difference: parseInt(e.target.value) 
+                onChange={e => handleChange({ 
+                  deadwood_difference: e.target.value ? parseInt(e.target.value) : undefined
                 })}
                 className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
@@ -155,7 +163,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
               <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
-                  onClick={() => onChange({ undercut_by: undefined })}
+                  onClick={() => handleChange({ undercut_by: undefined })}
                   className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                     !data.undercut_by
                       ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -166,7 +174,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                 </button>
                 <button
                   type="button"
-                  onClick={() => onChange({ undercut_by: 'Brady' })}
+                  onClick={() => handleChange({ undercut_by: 'Brady' })}
                   className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                     data.undercut_by === 'Brady'
                       ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -177,7 +185,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                 </button>
                 <button
                   type="button"
-                  onClick={() => onChange({ undercut_by: 'Jenny' })}
+                  onClick={() => handleChange({ undercut_by: 'Jenny' })}
                   className={`px-4 py-2.5 rounded-lg border text-center transition-colors ${
                     data.undercut_by === 'Jenny'
                       ? 'bg-indigo-600 border-indigo-500 text-white'
@@ -190,15 +198,6 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
             </div>
           </>
         )}
-
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Score
-          </label>
-          <div className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200">
-            {calculateScore()}
-          </div>
-        </div>
       </div>
     </div>
   );
