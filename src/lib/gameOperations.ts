@@ -5,10 +5,12 @@ export async function deleteGame(id: string) {
   console.log('Delete operation started for ID:', id);
   
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('games')
       .delete()
-      .match({ id });
+      .eq('id', id);
+    
+    console.log('Delete response:', { data, error });
     
     if (error) throw error;
     return { success: true };
@@ -23,10 +25,12 @@ export async function updateGame(id: string, updates: Partial<Game>) {
   console.log('Updates:', updates);
   
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('games')
       .update(updates)
-      .match({ id });
+      .eq('id', id);
+    
+    console.log('Update response:', { data, error });
     
     if (error) throw error;
     return { success: true };

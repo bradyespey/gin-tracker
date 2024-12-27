@@ -37,7 +37,7 @@ export function GameActions({ onEdit, onDelete, showConfirm, onCancelDelete }: G
         <Pencil className="h-4 w-4" />
       </button>
       <button
-        onClick={onDelete}
+        onClick={onCancelDelete}
         className="text-slate-400 hover:text-slate-300"
       >
         <Trash2 className="h-4 w-4" />
