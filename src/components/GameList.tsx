@@ -23,13 +23,11 @@ export function GameList({ games, onUpdate }: GameListProps) {
   }>({ key: 'date', direction: 'desc' });
 
   const handleDelete = async (id: string) => {
-    console.log('Attempting to delete game:', id);
     if (!id) return;
     setLoading(true);
     
     try {
       await deleteGame(id);
-      console.log('Game deleted successfully');
       onUpdate();
     } catch (error) {
       console.error('Game deletion failed:', error);
@@ -40,16 +38,126 @@ export function GameList({ games, onUpdate }: GameListProps) {
     }
   };
 
-  // Rest of the component remains unchanged...
+  const handleEdit = (game: Game) => {
+    setEditingGame(game);
+    setEditFormData({
+      date: game.date,
+      winner: game.winner,
+      went_first: game.went_first,
+      knock: game.knock,
+      score: game.score,
+      deadwood_difference: game.deadwood_difference,
+      undercut_by: game.undercut_by || undefined
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingGame || !editFormData) return;
+    setLoading(true);
+
+    try {
+      const updates = {
+        date: editFormData.date,
+        winner: editFormData.winner,
+        went_first: editFormData.went_first,
+        knock: editFormData.knock,
+        score: calculateScore(editFormData),
+        deadwood_difference: editFormData.deadwood_difference,
+        undercut_by: editFormData.undercut_by || null
+      };
+
+      await updateGame(editingGame.id, updates);
+      onUpdate();
+      setEditingGame(null);
+      setEditFormData(null);
+    } catch (error) {
+      console.error('Game update failed:', error);
+      alert('Error updating game. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSort = (key: keyof Game) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedGames = [...games].sort((a, b) => {
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+    
+    if (aValue === bValue) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+    
+    const modifier = sortConfig.direction === 'asc' ? 1 : -1;
+    return aValue < bValue ? -1 * modifier : 1 * modifier;
+  });
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
-        {/* Table header remains unchanged... */}
+        <thead className="bg-slate-800/50">
+          <tr>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('date')}>
+                Date
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('winner')}>
+                Winner
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('score')}>
+                Score
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('went_first')}>
+                First Player
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('knock')}>
+                Type
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('undercut_by')}>
+                Undercut
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-right text-slate-300">
+              <span>Actions</span>
+            </th>
+          </tr>
+        </thead>
         <tbody className="divide-y divide-slate-700/50">
           {sortedGames.map((game) => (
             <tr key={game.id} className="hover:bg-slate-800/30">
-              {/* Other cells remain unchanged... */}
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+                {formatDateForDisplay(game.date)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+                {game.winner}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+                {game.score}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+                {game.went_first}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+                {game.knock ? 'Knock' : 'Gin'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+                {game.undercut_by || '-'}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 <GameActions
                   onEdit={() => handleEdit(game)}
