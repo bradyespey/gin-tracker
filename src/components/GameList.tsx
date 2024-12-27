@@ -32,7 +32,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
       const { data, error } = await supabase
         .from('games')
         .delete()
-        .match({ id });
+        .where('id', '=', id);
 
       console.log('Delete response:', { data, error });
 
@@ -81,7 +81,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
           deadwood_difference: editFormData.deadwood_difference,
           undercut_by: editFormData.undercut_by || null
         })
-        .match({ id: editingGame.id });
+        .where('id', '=', editingGame.id);
 
       console.log('Update response:', { data, error });
 
@@ -117,20 +117,22 @@ export function GameList({ games, onUpdate }: GameListProps) {
     return aValue < bValue ? -1 * modifier : 1 * modifier;
   });
 
+  const columns = [
+    { key: 'date', label: 'Date' },
+    { key: 'winner', label: 'Winner' },
+    { key: 'score', label: 'Score' },
+    { key: 'went_first', label: 'First Player' },
+    { key: 'knock', label: 'Type' },
+    { key: 'undercut_by', label: 'Undercut' },
+    { key: 'actions', label: 'Actions', sortable: false }
+  ];
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead className="bg-slate-800/50">
           <tr>
-            {[
-              { key: 'date', label: 'Date' },
-              { key: 'winner', label: 'Winner' },
-              { key: 'score', label: 'Score' },
-              { key: 'went_first', label: 'First Player' },
-              { key: 'knock', label: 'Type', sortable: false },
-              { key: 'undercut_by', label: 'Undercut', sortable: false },
-              { key: 'actions', label: 'Actions', sortable: false }
-            ].map(({ key, label, sortable = true }) => (
+            {columns.map(({ key, label, sortable = true }) => (
               <th key={key} className="px-6 py-3 text-left text-sm font-medium text-slate-300">
                 {sortable ? (
                   <SortButton onClick={() => handleSort(key as keyof Game)}>
