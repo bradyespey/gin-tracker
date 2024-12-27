@@ -121,8 +121,16 @@ export function GameList({ games, onUpdate }: GameListProps) {
                 First Player
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">Type</th>
-            <th className="px-6 py-3 text-left text-slate-300">Undercut</th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('knock')}>
+                Type
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('undercut_by')}>
+                Undercut
+              </SortButton>
+            </th>
             <th className="px-6 py-3 text-right text-slate-300">Actions</th>
           </tr>
         </thead>

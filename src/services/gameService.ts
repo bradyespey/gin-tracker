@@ -6,7 +6,9 @@ export async function deleteGame(id: string): Promise<void> {
   
   try {
     const { error } = await supabase
-      .rpc('delete_game', { game_id: id });
+      .from('games')
+      .delete()
+      .eq('id', id);
 
     if (error) {
       console.error('Supabase delete error:', error);
@@ -26,10 +28,9 @@ export async function updateGame(id: string, updates: Partial<Game>): Promise<vo
 
   try {
     const { error } = await supabase
-      .rpc('update_game', { 
-        game_id: id,
-        game_updates: updates
-      });
+      .from('games')
+      .update(updates)
+      .eq('id', id);
 
     if (error) {
       console.error('Supabase update error:', error);
