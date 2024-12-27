@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { EditGameModal } from './EditGameModal';
 import { GameActions } from './GameActions';
 import { SortButton } from './SortButton';
 import { formatDateForDisplay } from '../utils/dateUtils';
 import { calculateScore } from '../utils/gameUtils';
-import { deleteGame, updateGame } from '../lib/gameOperations';
 import type { Game, GameFormData } from '../types/game';
 
 interface GameListProps {
@@ -27,12 +27,14 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
     
     try {
+      console.log('Deleting game:', id);
       const { error } = await supabase
         .from('games')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+      console.log('Game deleted successfully');
       onUpdate();
     } catch (error) {
       console.error('Error deleting game:', error);
@@ -61,6 +63,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
 
     try {
+      console.log('Updating game:', editingGame.id);
       const updates = {
         date: editFormData.date,
         winner: editFormData.winner,
@@ -77,6 +80,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
         .eq('id', editingGame.id);
 
       if (error) throw error;
+      console.log('Game updated successfully');
       onUpdate();
       setEditingGame(null);
       setEditFormData(null);
@@ -171,7 +175,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 <GameActions
                   onEdit={() => handleEdit(game)}
-                  onDelete={() => setDeleteConfirm(game.id)}
+                  onDelete={() => deleteConfirm === game.id ? handleDelete(game.id) : setDeleteConfirm(game.id)}
                   showConfirm={deleteConfirm === game.id}
                   onCancelDelete={() => setDeleteConfirm(null)}
                 />
