@@ -1,12 +1,10 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { Trophy, PlusCircle, Import, Book } from 'lucide-react';
+import { Trophy, Book } from 'lucide-react';
 import { AuthButton } from './AuthButton';
 import { useAuth } from '../context/AuthContext';
 
 export function Layout() {
-  const { user } = useAuth();
-
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <nav className="bg-white dark:bg-gray-800 shadow-sm">
@@ -19,24 +17,6 @@ export function Layout() {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              {user && (
-                <>
-                  <Link 
-                    to="/gin/new"
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  >
-                    <PlusCircle className="h-5 w-5 mr-1" />
-                    New Game
-                  </Link>
-                  <Link 
-                    to="/gin/import"
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  >
-                    <Import className="h-5 w-5 mr-1" />
-                    Import
-                  </Link>
-                </>
-              )}
               <Link 
                 to="/gin/rules"
                 className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400"

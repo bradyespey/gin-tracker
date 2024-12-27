@@ -4,9 +4,11 @@ import { PlusCircle, Import } from 'lucide-react';
 import { GameList } from '../components/GameList';
 import { calculateStats } from '../lib/gameLogic';
 import { fetchGames } from '../services/gameService';
+import { useAuth } from '../context/AuthContext';
 import type { Game, Stats } from '../types/game';
 
 export function Dashboard() {
+  const { user } = useAuth();
   const [games, setGames] = useState<Game[]>([]);
   const [stats, setStats] = useState<Stats>({
     bradyScore: 0,
@@ -33,6 +35,15 @@ export function Dashboard() {
   useEffect(() => {
     loadGames();
   }, [loadGames]);
+
+  if (!user) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-slate-100 mb-4">Welcome to Gin Rummy Tracker</h1>
+        <p className="text-slate-300 mb-8">Please sign in to view and manage games.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
