@@ -33,12 +33,14 @@ export function GameActions({ onEdit, onDelete, showConfirm, onCancelDelete }: G
       <button
         onClick={onEdit}
         className="text-slate-400 hover:text-slate-300"
+        aria-label="Edit game"
       >
         <Pencil className="h-4 w-4" />
       </button>
       <button
         onClick={onDelete}
         className="text-slate-400 hover:text-slate-300"
+        aria-label="Delete game"
       >
         <Trash2 className="h-4 w-4" />
       </button>

@@ -161,7 +161,13 @@ export function GameList({ games, onUpdate }: GameListProps) {
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 <GameActions
                   onEdit={() => handleEdit(game)}
-                  onDelete={() => deleteConfirm === game.id ? handleDelete(game.id) : setDeleteConfirm(game.id)}
+                  onDelete={() => {
+                    if (deleteConfirm === game.id) {
+                      handleDelete(game.id);
+                    } else {
+                      setDeleteConfirm(game.id);
+                    }
+                  }}
                   showConfirm={deleteConfirm === game.id}
                   onCancelDelete={() => setDeleteConfirm(null)}
                 />
