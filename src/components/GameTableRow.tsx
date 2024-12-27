@@ -1,6 +1,7 @@
 import React from 'react';
 import { GameActions } from './GameActions';
 import { formatDateForDisplay } from '../utils/dateUtils';
+import { formatNumber } from '../utils/numberFormat';
 import type { Game } from '../types/game';
 
 interface GameTableRowProps {
@@ -30,7 +31,7 @@ export function GameTableRow({
         {game.winner}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
-        {game.score}
+        {formatNumber(game.score)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
         {game.went_first}

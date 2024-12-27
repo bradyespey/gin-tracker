@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
-import { saveGameLocally, getLocalGames } from '../lib/indexedDB';
+import { saveGameLocally, getLocalGames, updateGameLocally, deleteGameLocally } from '../lib/indexedDB';
+import { formatNumber } from '../utils/numberFormat';
 import type { Game, GameFormData } from '../types/game';
 
 export async function deleteGame(id: string) {
@@ -9,11 +10,14 @@ export async function deleteGame(id: string) {
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      await deleteGameLocally(id);
+      return { error: null };
+    }
     return { error: null };
   } catch (error) {
-    console.error('Delete game error:', error);
-    return { error };
+    await deleteGameLocally(id);
+    return { error: null };
   }
 }
 
@@ -34,11 +38,14 @@ export async function updateGame(id: string, formData: GameFormData) {
       .update(updates)
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      await updateGameLocally(id, updates);
+      return { error: null };
+    }
     return { error: null };
   } catch (error) {
-    console.error('Update game error:', error);
-    return { error };
+    await updateGameLocally(id, formData);
+    return { error: null };
   }
 }
 
@@ -50,18 +57,26 @@ export async function fetchGames() {
       .order('date', { ascending: false });
     
     if (error) {
-      // If online request fails, try to get local data
-      console.log('Fetching local games due to error');
       const localGames = await getLocalGames();
       return { data: localGames, error: null };
     }
     
-    return { data: data || [], error: null };
+    return { 
+      data: data?.map(game => ({
+        ...game,
+        score: formatNumber(game.score)
+      })) || [], 
+      error: null 
+    };
   } catch (error) {
-    console.log('Fetching local games due to catch');
-    // If completely offline, get local data
     const localGames = await getLocalGames();
-    return { data: localGames, error: null };
+    return { 
+      data: localGames.map(game => ({
+        ...game,
+        score: formatNumber(game.score)
+      })), 
+      error: null 
+    };
   }
 }
 
@@ -84,20 +99,25 @@ export async function addGame(formData: GameFormData) {
       .single();
 
     if (error) {
-      // If offline, save locally
-      await saveGameLocally(gameData);
+      await saveGameLocally({
+        ...gameData,
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        game_number: -1 // Will be assigned by server later
+      });
       return { data: null, error: null };
     }
 
     return { data, error: null };
   } catch (error) {
-    // If completely offline, save locally
-    try {
-      await saveGameLocally(formData);
-      return { data: null, error: null };
-    } catch (localError) {
-      console.error('Local save error:', localError);
-      return { data: null, error: localError };
-    }
+    await saveGameLocally({
+      ...formData,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      game_number: -1
+    });
+    return { data: null, error: null };
   }
 }

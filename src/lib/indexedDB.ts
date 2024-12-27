@@ -18,18 +18,39 @@ export async function initDB() {
   return db;
 }
 
-export async function saveGameLocally(game: GameFormData) {
+export async function saveGameLocally(game: Game) {
   const db = await initDB();
   await db.add(STORE_NAME, {
     ...game,
-    id: crypto.randomUUID(),
     syncStatus: 'pending'
   });
 }
 
-export async function getLocalGames() {
+export async function updateGameLocally(id: string, updates: Partial<Game>) {
   const db = await initDB();
-  return db.getAll(STORE_NAME);
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  
+  const game = await store.get(id);
+  if (game) {
+    await store.put({
+      ...game,
+      ...updates,
+      syncStatus: 'pending',
+      updated_at: new Date().toISOString()
+    });
+  }
+}
+
+export async function deleteGameLocally(id: string) {
+  const db = await initDB();
+  await db.delete(STORE_NAME, id);
+}
+
+export async function getLocalGames(): Promise<Game[]> {
+  const db = await initDB();
+  const games = await db.getAll(STORE_NAME);
+  return games.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function syncPendingGames() {
@@ -40,14 +61,15 @@ export async function syncPendingGames() {
 
   for (const game of pendingGames) {
     try {
-      // Attempt to sync with server
-      const response = await fetch('/api/games', {
+      const { error } = await fetch('/api/games', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(game)
       });
       
-      if (response.ok) {
-        // Update local status to synced
+      if (!error) {
         await store.put({ ...game, syncStatus: 'synced' });
       }
     } catch (error) {
