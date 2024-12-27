@@ -1,5 +1,6 @@
 export interface Game {
   id: string;
+  game_number: number;
   date: string;
   winner: 'Brady' | 'Jenny';
   score: number;

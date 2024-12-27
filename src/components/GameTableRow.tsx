@@ -21,6 +21,9 @@ export function GameTableRow({
   return (
     <tr className="hover:bg-slate-800/30">
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
+        {game.game_number}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
         {formatDateForDisplay(game.date)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">

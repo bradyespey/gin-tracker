@@ -12,8 +12,17 @@ interface GameTableHeaderProps {
 
 export function GameTableHeader({ sortConfig, onSort }: GameTableHeaderProps) {
   return (
-    <thead className="bg-slate-800/50">
+    <thead className="bg-slate-800/50 sticky top-0">
       <tr>
+        <th className="px-6 py-3 text-left">
+          <SortButton 
+            active={sortConfig.key === 'game_number'}
+            direction={sortConfig.key === 'game_number' ? sortConfig.direction : undefined}
+            onClick={() => onSort('game_number')}
+          >
+            #
+          </SortButton>
+        </th>
         <th className="px-6 py-3 text-left">
           <SortButton 
             active={sortConfig.key === 'date'}
