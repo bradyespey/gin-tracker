@@ -23,7 +23,7 @@ export async function updateGame(id: string, formData: GameFormData) {
       winner: formData.winner,
       went_first: formData.went_first,
       knock: formData.knock,
-      score: formData.knock ? (formData.deadwood_difference || 0) : 25,
+      score: formData.knock ? (formData.deadwood_difference || 0) : (formData.score || 25),
       deadwood_difference: formData.knock ? formData.deadwood_difference : null,
       undercut_by: formData.undercut_by || null
     };
