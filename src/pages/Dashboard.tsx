@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { PlusCircle, Import } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { GameList } from '../components/GameList';
 import { calculateStats } from '../lib/gameLogic';
 import { fetchGames } from '../services/gameService';
@@ -103,20 +103,13 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div>
         <Link
           to="/gin/new"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           <PlusCircle className="h-5 w-5 mr-2" />
           New Game
-        </Link>
-        <Link
-          to="/gin/import"
-          className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
-        >
-          <Import className="h-5 w-5 mr-2" />
-          Import Games
         </Link>
       </div>
 

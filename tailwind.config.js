@@ -5,5 +5,5 @@ export default {
     extend: {},
   },
   plugins: [],
-  darkMode: 'media', // Enable system-based dark mode
+  darkMode: 'class', // Change from 'media' to 'class'
 };
