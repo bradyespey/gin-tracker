@@ -1,13 +1,14 @@
 import { supabase } from './supabase';
-import type { Game, GameFormData } from '../types/game';
+import type { Game } from '../types/game';
 
 export async function deleteGame(id: string) {
   console.log('Delete operation started for ID:', id);
   
   try {
-    const { data, error } = await supabase.rpc('delete_game', { game_id: id });
-    
-    console.log('Delete RPC response:', { data, error });
+    const { error } = await supabase
+      .from('games')
+      .delete()
+      .match({ id });
     
     if (error) throw error;
     return { success: true };
@@ -22,12 +23,10 @@ export async function updateGame(id: string, updates: Partial<Game>) {
   console.log('Updates:', updates);
   
   try {
-    const { data, error } = await supabase.rpc('update_game', {
-      game_id: id,
-      game_updates: updates
-    });
-    
-    console.log('Update RPC response:', { data, error });
+    const { error } = await supabase
+      .from('games')
+      .update(updates)
+      .match({ id });
     
     if (error) throw error;
     return { success: true };
