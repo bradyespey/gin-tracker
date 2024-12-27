@@ -1,8 +1,11 @@
 export function getLocalDate() {
   const now = new Date();
-  return now.toISOString().split('T')[0];
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().split('T')[0];
 }
 
 export function formatDateForDisplay(date: string) {
-  return new Date(date).toLocaleDateString();
+  const d = new Date(date);
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offset).toLocaleDateString();
 }
