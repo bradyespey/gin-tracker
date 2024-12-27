@@ -2,65 +2,39 @@ import { supabase } from '../lib/supabase';
 import type { Game } from '../types/game';
 
 export async function deleteGame(id: string): Promise<void> {
-  console.log('Starting delete operation for game:', id);
-  
-  try {
-    const { error } = await supabase
-      .from('games')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from('games')
+    .delete()
+    .match({ id });
 
-    if (error) {
-      console.error('Supabase delete error:', error);
-      throw error;
-    }
-
-    console.log('Game deleted successfully');
-  } catch (error) {
-    console.error('Delete operation failed:', error);
+  if (error) {
+    console.error('Error deleting game:', error);
     throw error;
   }
 }
 
 export async function updateGame(id: string, updates: Partial<Game>): Promise<void> {
-  console.log('Starting update operation for game:', id);
-  console.log('Update payload:', updates);
+  const { error } = await supabase
+    .from('games')
+    .update(updates)
+    .match({ id });
 
-  try {
-    const { error } = await supabase
-      .from('games')
-      .update(updates)
-      .eq('id', id);
-
-    if (error) {
-      console.error('Supabase update error:', error);
-      throw error;
-    }
-
-    console.log('Game updated successfully');
-  } catch (error) {
-    console.error('Update operation failed:', error);
+  if (error) {
+    console.error('Error updating game:', error);
     throw error;
   }
 }
 
 export async function fetchGames(): Promise<Game[]> {
-  console.log('Fetching games');
-  
-  try {
-    const { data, error } = await supabase
-      .from('games')
-      .select('*')
-      .order('date', { ascending: false });
+  const { data, error } = await supabase
+    .from('games')
+    .select('*')
+    .order('date', { ascending: false });
 
-    if (error) {
-      console.error('Supabase fetch error:', error);
-      throw error;
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Fetch operation failed:', error);
+  if (error) {
+    console.error('Error fetching games:', error);
     throw error;
   }
+
+  return data || [];
 }

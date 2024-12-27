@@ -24,9 +24,9 @@ export function GameList({ games, onUpdate }: GameListProps) {
 
   const handleDelete = async (id: string) => {
     if (!id) return;
-    setLoading(true);
     
     try {
+      setLoading(true);
       await deleteGame(id);
       onUpdate();
     } catch (error) {
@@ -53,9 +53,9 @@ export function GameList({ games, onUpdate }: GameListProps) {
 
   const handleSaveEdit = async () => {
     if (!editingGame || !editFormData) return;
-    setLoading(true);
-
+    
     try {
+      setLoading(true);
       await updateGame(editingGame.id, {
         date: editFormData.date,
         winner: editFormData.winner,
