@@ -1,11 +1,12 @@
 export function getLocalDate() {
   const now = new Date();
-  const offset = now.getTimezoneOffset() * 60000;
-  return new Date(now.getTime() - offset).toISOString().split('T')[0];
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function formatDateForDisplay(date: string) {
   const d = new Date(date);
-  const offset = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - offset).toLocaleDateString();
+  return d.toLocaleDateString();
 }
