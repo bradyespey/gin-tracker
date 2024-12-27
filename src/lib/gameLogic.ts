@@ -2,9 +2,9 @@ import type { Game, GameFormData, Stats } from '../types/game';
 
 export function calculateScore(knock: boolean, deadwoodDifference?: number, score?: number): number {
   if (knock) {
-    return deadwoodDifference || 0;
+    return Number(deadwoodDifference || 0);
   }
-  return score || 25;
+  return Number(score || 25);
 }
 
 export function calculateStats(games: Game[]): Stats {
@@ -24,19 +24,21 @@ export function calculateStats(games: Game[]): Stats {
 
   const stats = games.reduce(
     (acc, game) => {
+      const score = Number(game.score || 0);
+      
       if (game.winner === 'Brady') {
         acc.bradyWins++;
-        acc.bradyScore += game.score;
+        acc.bradyScore += score;
       } else {
         acc.jennyWins++;
-        acc.jennyScore += game.score;
+        acc.jennyScore += score;
       }
 
       if (!game.knock) acc.ginCount++;
       if (game.knock) acc.knockCount++;
       if (game.undercut_by) acc.undercutCount++;
       
-      acc.totalScore += game.score;
+      acc.totalScore += score;
       return acc;
     },
     {
@@ -59,20 +61,9 @@ export function calculateStats(games: Game[]): Stats {
     totalGames,
     bradyWins: stats.bradyWins,
     jennyWins: stats.jennyWins,
-    lastGame: games[games.length - 1],
     averageScore: Math.round(stats.totalScore / totalGames),
     ginPercentage: Math.round((stats.ginCount / totalGames) * 100),
     knockPercentage: Math.round((stats.knockCount / totalGames) * 100),
     undercutPercentage: Math.round((stats.undercutCount / totalGames) * 100),
-  };
-}
-
-export function getEmptyGame(): GameFormData {
-  return {
-    date: new Date().toISOString().split('T')[0],
-    winner: 'Brady',
-    went_first: 'Brady',
-    knock: false,
-    score: 25
   };
 }

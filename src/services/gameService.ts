@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase';
 import { saveGameLocally, getLocalGames, updateGameLocally, deleteGameLocally } from '../lib/indexedDB';
-import { formatNumber } from '../utils/numberFormat';
 import type { Game, GameFormData } from '../types/game';
 
 export async function deleteGame(id: string) {
@@ -12,12 +11,11 @@ export async function deleteGame(id: string) {
     
     if (error) {
       await deleteGameLocally(id);
-      return { error: null };
     }
-    return { error: null };
+    return { error };
   } catch (error) {
     await deleteGameLocally(id);
-    return { error: null };
+    return { error };
   }
 }
 
@@ -28,8 +26,8 @@ export async function updateGame(id: string, formData: GameFormData) {
       winner: formData.winner,
       went_first: formData.went_first,
       knock: formData.knock,
-      score: formData.knock ? (formData.deadwood_difference || 0) : (formData.score || 25),
-      deadwood_difference: formData.knock ? formData.deadwood_difference : null,
+      score: formData.knock ? Number(formData.deadwood_difference || 0) : Number(formData.score || 25),
+      deadwood_difference: formData.knock ? Number(formData.deadwood_difference) : null,
       undercut_by: formData.undercut_by || null
     };
 
@@ -40,12 +38,11 @@ export async function updateGame(id: string, formData: GameFormData) {
     
     if (error) {
       await updateGameLocally(id, updates);
-      return { error: null };
     }
-    return { error: null };
+    return { error };
   } catch (error) {
     await updateGameLocally(id, formData);
-    return { error: null };
+    return { error };
   }
 }
 
@@ -61,22 +58,10 @@ export async function fetchGames() {
       return { data: localGames, error: null };
     }
     
-    return { 
-      data: data?.map(game => ({
-        ...game,
-        score: formatNumber(game.score)
-      })) || [], 
-      error: null 
-    };
+    return { data: data || [], error: null };
   } catch (error) {
     const localGames = await getLocalGames();
-    return { 
-      data: localGames.map(game => ({
-        ...game,
-        score: formatNumber(game.score)
-      })), 
-      error: null 
-    };
+    return { data: localGames, error };
   }
 }
 
@@ -87,8 +72,8 @@ export async function addGame(formData: GameFormData) {
       winner: formData.winner,
       went_first: formData.went_first,
       knock: formData.knock,
-      score: formData.knock ? (formData.deadwood_difference || 0) : (formData.score || 25),
-      deadwood_difference: formData.knock ? formData.deadwood_difference : null,
+      score: formData.knock ? Number(formData.deadwood_difference || 0) : Number(formData.score || 25),
+      deadwood_difference: formData.knock ? Number(formData.deadwood_difference) : null,
       undercut_by: formData.undercut_by || null
     };
 
@@ -104,9 +89,9 @@ export async function addGame(formData: GameFormData) {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        game_number: -1 // Will be assigned by server later
+        game_number: -1
       });
-      return { data: null, error: null };
+      return { data: null, error };
     }
 
     return { data, error: null };
@@ -118,6 +103,6 @@ export async function addGame(formData: GameFormData) {
       updated_at: new Date().toISOString(),
       game_number: -1
     });
-    return { data: null, error: null };
+    return { data: null, error };
   }
 }
