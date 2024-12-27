@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { EditGameModal } from './EditGameModal';
 import { GameActions } from './GameActions';
 import { SortButton } from './SortButton';
-import { formatDateForDisplay } from '../services/dateService';
+import { formatDateForDisplay } from '../utils/dateUtils';
 import { calculateScore } from '../utils/gameUtils';
 import { deleteGame, updateGame } from '../services/gameService';
 import type { Game, GameFormData } from '../types/game';
@@ -23,16 +23,17 @@ export function GameList({ games, onUpdate }: GameListProps) {
   }>({ key: 'date', direction: 'desc' });
 
   const handleDelete = async (id: string) => {
-    if (!id || loading) return;
-    setLoading(true);
+    if (!id) return;
     
-    const success = await deleteGame(id);
-    if (success) {
-      onUpdate();
+    try {
+      const { error } = await deleteGame(id);
+      if (!error) {
+        setDeleteConfirm(null);
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Error deleting game:', error);
     }
-    
-    setLoading(false);
-    setDeleteConfirm(null);
   };
 
   const handleEdit = (game: Game) => {
@@ -49,27 +50,27 @@ export function GameList({ games, onUpdate }: GameListProps) {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingGame || !editFormData || loading) return;
-    setLoading(true);
+    if (!editingGame || !editFormData) return;
 
-    const updates = {
-      date: editFormData.date,
-      winner: editFormData.winner,
-      went_first: editFormData.went_first,
-      knock: editFormData.knock,
-      score: calculateScore(editFormData),
-      deadwood_difference: editFormData.deadwood_difference,
-      undercut_by: editFormData.undercut_by || null
-    };
+    try {
+      const { error } = await updateGame(editingGame.id, {
+        date: editFormData.date,
+        winner: editFormData.winner,
+        went_first: editFormData.went_first,
+        knock: editFormData.knock,
+        score: calculateScore(editFormData),
+        deadwood_difference: editFormData.deadwood_difference,
+        undercut_by: editFormData.undercut_by || null
+      });
 
-    const success = await updateGame(editingGame.id, updates);
-    if (success) {
-      onUpdate();
-      setEditingGame(null);
-      setEditFormData(null);
+      if (!error) {
+        setEditingGame(null);
+        setEditFormData(null);
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Error updating game:', error);
     }
-    
-    setLoading(false);
   };
 
   const handleSort = (key: keyof Game) => {
