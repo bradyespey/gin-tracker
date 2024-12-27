@@ -25,17 +25,17 @@ export function GameList({ games, onUpdate }: GameListProps) {
   const handleDelete = async (id: string) => {
     if (!id) return;
     setLoading(true);
-    
+  
     try {
       console.log('Attempting to delete game with ID:', id);
-      
+  
       const { data, error } = await supabase
         .from('games')
         .delete()
-        .where('id', '=', id);
-
+        .eq('id', id); // Use `.eq()` instead of `.where()`
+  
       console.log('Delete response:', { data, error });
-
+  
       if (error) throw error;
       onUpdate();
     } catch (error) {
@@ -45,7 +45,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
       setLoading(false);
       setDeleteConfirm(null);
     }
-  };
+  };  
 
   const handleEdit = (game: Game) => {
     setEditingGame(game);
