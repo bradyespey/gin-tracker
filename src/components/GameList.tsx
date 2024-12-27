@@ -27,10 +27,15 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
     
     try {
-      await deleteGame(id);
+      const { error } = await supabase
+        .from('games')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       onUpdate();
     } catch (error) {
-      console.error('Game deletion failed:', error);
+      console.error('Error deleting game:', error);
       alert('Error deleting game. Please try again.');
     } finally {
       setLoading(false);
@@ -66,12 +71,17 @@ export function GameList({ games, onUpdate }: GameListProps) {
         undercut_by: editFormData.undercut_by || null
       };
 
-      await updateGame(editingGame.id, updates);
+      const { error } = await supabase
+        .from('games')
+        .update(updates)
+        .eq('id', editingGame.id);
+
+      if (error) throw error;
       onUpdate();
       setEditingGame(null);
       setEditFormData(null);
     } catch (error) {
-      console.error('Game update failed:', error);
+      console.error('Error updating game:', error);
       alert('Error updating game. Please try again.');
     } finally {
       setLoading(false);
@@ -161,7 +171,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 <GameActions
                   onEdit={() => handleEdit(game)}
-                  onDelete={() => handleDelete(game.id)}
+                  onDelete={() => setDeleteConfirm(game.id)}
                   showConfirm={deleteConfirm === game.id}
                   onCancelDelete={() => setDeleteConfirm(null)}
                 />
