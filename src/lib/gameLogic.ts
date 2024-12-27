@@ -1,11 +1,10 @@
-import { Game, Stats } from '../types/game';
+import type { Game, GameFormData, Stats } from '../types/game';
 
-export function calculateScore(knock: boolean, deadwoodDifference?: number): number {
-  if (!knock) {
-    // Gin bonus (25) + deadwood points
-    return 25;
+export function calculateScore(knock: boolean, deadwoodDifference?: number, score?: number): number {
+  if (knock) {
+    return deadwoodDifference || 0;
   }
-  return deadwoodDifference || 0;
+  return score || 25;
 }
 
 export function calculateStats(games: Game[]): Stats {
@@ -65,5 +64,15 @@ export function calculateStats(games: Game[]): Stats {
     ginPercentage: Math.round((stats.ginCount / totalGames) * 100),
     knockPercentage: Math.round((stats.knockCount / totalGames) * 100),
     undercutPercentage: Math.round((stats.undercutCount / totalGames) * 100),
+  };
+}
+
+export function getEmptyGame(): GameFormData {
+  return {
+    date: new Date().toISOString().split('T')[0],
+    winner: 'Brady',
+    went_first: 'Brady',
+    knock: false,
+    score: 25
   };
 }

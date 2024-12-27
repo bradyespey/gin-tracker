@@ -1,12 +1,11 @@
-export function getLocalDate() {
+import { format, parseISO } from 'date-fns';
+
+export function getLocalDate(): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return format(now, 'yyyy-MM-dd');
 }
 
-export function formatDateForDisplay(date: string) {
-  const d = new Date(date);
-  return d.toLocaleDateString();
+export function formatDateForDisplay(date: string): string {
+  const parsedDate = parseISO(date);
+  return format(parsedDate, 'MM/dd/yyyy');
 }

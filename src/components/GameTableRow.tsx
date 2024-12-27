@@ -1,6 +1,6 @@
 import React from 'react';
 import { GameActions } from './GameActions';
-import { formatDateForDisplay } from '../services/dateService';
+import { formatDateForDisplay } from '../utils/dateUtils';
 import type { Game } from '../types/game';
 
 interface GameTableRowProps {
