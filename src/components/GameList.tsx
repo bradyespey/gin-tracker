@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
 import { EditGameModal } from './EditGameModal';
 import { GameActions } from './GameActions';
 import { SortButton } from './SortButton';
-import { formatDateForDisplay } from '../utils/dateUtils';
+import { formatDateForDisplay } from '../services/dateService';
 import { calculateScore } from '../utils/gameUtils';
+import { deleteGame, updateGame } from '../services/gameService';
 import type { Game, GameFormData } from '../types/game';
 
 interface GameListProps {
@@ -27,21 +27,10 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
     
     try {
-      const { error } = await supabase
-        .from('games')
-        .delete()
-        .single()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Supabase delete error:', error);
-        throw error;
-      }
-      
+      await deleteGame(id);
       onUpdate();
     } catch (error) {
       console.error('Error deleting game:', error);
-      alert('Error deleting game. Please try again.');
     } finally {
       setLoading(false);
       setDeleteConfirm(null);
@@ -66,27 +55,21 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('games')
-        .update({
-          date: editFormData.date,
-          winner: editFormData.winner,
-          went_first: editFormData.went_first,
-          knock: editFormData.knock,
-          score: calculateScore(editFormData),
-          deadwood_difference: editFormData.deadwood_difference,
-          undercut_by: editFormData.undercut_by || null
-        })
-        .eq('id', editingGame.id);
-
-      if (error) throw error;
+      await updateGame(editingGame.id, {
+        date: editFormData.date,
+        winner: editFormData.winner,
+        went_first: editFormData.went_first,
+        knock: editFormData.knock,
+        score: calculateScore(editFormData),
+        deadwood_difference: editFormData.deadwood_difference,
+        undercut_by: editFormData.undercut_by || null
+      });
       
       onUpdate();
       setEditingGame(null);
       setEditFormData(null);
     } catch (error) {
       console.error('Error updating game:', error);
-      alert('Error updating game. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -136,8 +119,16 @@ export function GameList({ games, onUpdate }: GameListProps) {
                 First Player
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">Type</th>
-            <th className="px-6 py-3 text-left text-slate-300">Undercut</th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('knock')}>
+                Type
+              </SortButton>
+            </th>
+            <th className="px-6 py-3 text-left text-slate-300">
+              <SortButton onClick={() => handleSort('undercut_by')}>
+                Undercut
+              </SortButton>
+            </th>
             <th className="px-6 py-3 text-right text-slate-300">Actions</th>
           </tr>
         </thead>

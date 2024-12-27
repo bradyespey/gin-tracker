@@ -5,24 +5,18 @@ export async function deleteGame(id: string): Promise<void> {
   const { error } = await supabase
     .from('games')
     .delete()
-    .match({ id });
+    .eq('id', id);
 
-  if (error) {
-    console.error('Error deleting game:', error);
-    throw error;
-  }
+  if (error) throw error;
 }
 
 export async function updateGame(id: string, updates: Partial<Game>): Promise<void> {
   const { error } = await supabase
     .from('games')
     .update(updates)
-    .match({ id });
+    .eq('id', id);
 
-  if (error) {
-    console.error('Error updating game:', error);
-    throw error;
-  }
+  if (error) throw error;
 }
 
 export async function fetchGames(): Promise<Game[]> {
@@ -31,10 +25,6 @@ export async function fetchGames(): Promise<Game[]> {
     .select('*')
     .order('date', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching games:', error);
-    throw error;
-  }
-
+  if (error) throw error;
   return data || [];
 }
