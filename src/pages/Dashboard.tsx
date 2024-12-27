@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, Import } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { GameList } from '../components/GameList';
 import { calculateStats } from '../lib/gameLogic';
+import { fetchGames } from '../services/gameService';
 import type { Game, Stats } from '../types/game';
 
 export function Dashboard() {
@@ -20,24 +20,19 @@ export function Dashboard() {
     undercutPercentage: 0,
   });
 
-  useEffect(() => {
-    async function fetchGames() {
-      const { data, error } = await supabase
-        .from('games')
-        .select('*')
-        .order('date', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching games:', error);
-        return;
-      }
-
-      setGames(data);
-      setStats(calculateStats(data));
+  const loadGames = useCallback(async () => {
+    const { data, error } = await fetchGames();
+    if (error) {
+      console.error('Error fetching games:', error);
+      return;
     }
-
-    fetchGames();
+    setGames(data);
+    setStats(calculateStats(data));
   }, []);
+
+  useEffect(() => {
+    loadGames();
+  }, [loadGames]);
 
   return (
     <div className="space-y-8">
@@ -107,7 +102,7 @@ export function Dashboard() {
         </Link>
         <Link
           to="/gin/import"
-          className="inline-flex items-center px-4  py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
         >
           <Import className="h-5 w-5 mr-2" />
           Import Games
@@ -116,7 +111,7 @@ export function Dashboard() {
 
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Games</h2>
-        <GameList games={games} />
+        <GameList games={games} onUpdate={loadGames} />
       </div>
     </div>
   );
