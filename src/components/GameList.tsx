@@ -23,18 +23,16 @@ export function GameList({ games, onUpdate }: GameListProps) {
   }>({ key: 'date', direction: 'desc' });
 
   const handleDelete = async (id: string) => {
-    if (!id) return;
+    if (!id || loading) return;
     setLoading(true);
     
-    try {
-      await deleteGame(id);
+    const success = await deleteGame(id);
+    if (success) {
       onUpdate();
-    } catch (error) {
-      console.error('Error deleting game:', error);
-    } finally {
-      setLoading(false);
-      setDeleteConfirm(null);
     }
+    
+    setLoading(false);
+    setDeleteConfirm(null);
   };
 
   const handleEdit = (game: Game) => {
@@ -51,28 +49,27 @@ export function GameList({ games, onUpdate }: GameListProps) {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingGame || !editFormData) return;
+    if (!editingGame || !editFormData || loading) return;
     setLoading(true);
 
-    try {
-      await updateGame(editingGame.id, {
-        date: editFormData.date,
-        winner: editFormData.winner,
-        went_first: editFormData.went_first,
-        knock: editFormData.knock,
-        score: calculateScore(editFormData),
-        deadwood_difference: editFormData.deadwood_difference,
-        undercut_by: editFormData.undercut_by || null
-      });
-      
+    const updates = {
+      date: editFormData.date,
+      winner: editFormData.winner,
+      went_first: editFormData.went_first,
+      knock: editFormData.knock,
+      score: calculateScore(editFormData),
+      deadwood_difference: editFormData.deadwood_difference,
+      undercut_by: editFormData.undercut_by || null
+    };
+
+    const success = await updateGame(editingGame.id, updates);
+    if (success) {
       onUpdate();
       setEditingGame(null);
       setEditFormData(null);
-    } catch (error) {
-      console.error('Error updating game:', error);
-    } finally {
-      setLoading(false);
     }
+    
+    setLoading(false);
   };
 
   const handleSort = (key: keyof Game) => {
