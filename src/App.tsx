@@ -7,7 +7,7 @@ import { Rules } from './pages/Rules';
 import { AuthCallback } from './pages/AuthCallback';
 import { AuthProvider } from './context/AuthContext';
 
-function App() {
+export default function App() {
   // Add system theme detection
   useEffect(() => {
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
