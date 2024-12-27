@@ -27,15 +27,19 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
     
     try {
-      const { error } = await supabase
+      console.log('Attempting to delete game with ID:', id);
+      
+      const { data, error } = await supabase
         .from('games')
         .delete()
-        .filter('id', 'eq', id);
+        .match({ id });
+
+      console.log('Delete response:', { data, error });
 
       if (error) throw error;
       onUpdate();
     } catch (error) {
-      console.error('Error deleting game:', error);
+      console.error('Detailed delete error:', error);
       alert('Error deleting game. Please try again.');
     } finally {
       setLoading(false);
@@ -61,7 +65,12 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      console.log('Attempting to update game:', {
+        id: editingGame.id,
+        updates: editFormData
+      });
+
+      const { data, error } = await supabase
         .from('games')
         .update({
           date: editFormData.date,
@@ -72,7 +81,9 @@ export function GameList({ games, onUpdate }: GameListProps) {
           deadwood_difference: editFormData.deadwood_difference,
           undercut_by: editFormData.undercut_by || null
         })
-        .filter('id', 'eq', editingGame.id);
+        .match({ id: editingGame.id });
+
+      console.log('Update response:', { data, error });
 
       if (error) throw error;
       
@@ -80,7 +91,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
       setEditingGame(null);
       setEditFormData(null);
     } catch (error) {
-      console.error('Error updating game:', error);
+      console.error('Detailed update error:', error);
       alert('Error updating game. Please try again.');
     } finally {
       setLoading(false);
@@ -111,29 +122,23 @@ export function GameList({ games, onUpdate }: GameListProps) {
       <table className="w-full">
         <thead className="bg-slate-800/50">
           <tr>
-            <th className="px-6 py-3 text-left text-sm font-medium text-slate-300">
-              <SortButton onClick={() => handleSort('date')}>
-                Date
-              </SortButton>
-            </th>
-            <th className="px-6 py-3 text-left text-sm font-medium text-slate-300">
-              <SortButton onClick={() => handleSort('winner')}>
-                Winner
-              </SortButton>
-            </th>
-            <th className="px-6 py-3 text-left text-sm font-medium text-slate-300">
-              <SortButton onClick={() => handleSort('score')}>
-                Score
-              </SortButton>
-            </th>
-            <th className="px-6 py-3 text-left text-sm font-medium text-slate-300">
-              <SortButton onClick={() => handleSort('went_first')}>
-                First Player
-              </SortButton>
-            </th>
-            <th className="px-6 py-3 text-left text-sm font-medium text-slate-300">Type</th>
-            <th className="px-6 py-3 text-left text-sm font-medium text-slate-300">Undercut</th>
-            <th className="px-6 py-3 text-right text-sm font-medium text-slate-300">Actions</th>
+            {[
+              { key: 'date', label: 'Date' },
+              { key: 'winner', label: 'Winner' },
+              { key: 'score', label: 'Score' },
+              { key: 'went_first', label: 'First Player' },
+              { key: 'knock', label: 'Type', sortable: false },
+              { key: 'undercut_by', label: 'Undercut', sortable: false },
+              { key: 'actions', label: 'Actions', sortable: false }
+            ].map(({ key, label, sortable = true }) => (
+              <th key={key} className="px-6 py-3 text-left text-sm font-medium text-slate-300">
+                {sortable ? (
+                  <SortButton onClick={() => handleSort(key as keyof Game)}>
+                    {label}
+                  </SortButton>
+                ) : label}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-700/50">
