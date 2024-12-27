@@ -27,8 +27,12 @@ export function GameList({ games, onUpdate }: GameListProps) {
     
     try {
       setLoading(true);
-      await deleteGame(id);
-      onUpdate();
+      const success = await deleteGame(id);
+      if (success) {
+        onUpdate();
+      } else {
+        throw new Error('Delete operation failed');
+      }
     } catch (error) {
       console.error('Error deleting game:', error);
       alert('Error deleting game. Please try again.');
@@ -56,7 +60,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
     
     try {
       setLoading(true);
-      await updateGame(editingGame.id, {
+      const success = await updateGame(editingGame.id, {
         date: editFormData.date,
         winner: editFormData.winner,
         went_first: editFormData.went_first,
@@ -66,9 +70,13 @@ export function GameList({ games, onUpdate }: GameListProps) {
         undercut_by: editFormData.undercut_by || null
       });
       
-      onUpdate();
-      setEditingGame(null);
-      setEditFormData(null);
+      if (success) {
+        onUpdate();
+        setEditingGame(null);
+        setEditFormData(null);
+      } else {
+        throw new Error('Update operation failed');
+      }
     } catch (error) {
       console.error('Error updating game:', error);
       alert('Error updating game. Please try again.');
@@ -101,64 +109,64 @@ export function GameList({ games, onUpdate }: GameListProps) {
       <table className="w-full">
         <thead className="bg-slate-800/50">
           <tr>
-            <th className="px-6 py-3 text-left text-slate-300">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('date')}>
                 Date
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('winner')}>
                 Winner
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('score')}>
                 Score
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('went_first')}>
                 First Player
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('knock')}>
                 Type
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">
+            <th className="px-6 py-3 text-left">
               <SortButton onClick={() => handleSort('undercut_by')}>
                 Undercut
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-right text-slate-300">Actions</th>
+            <th className="px-6 py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-700/50">
           {sortedGames.map((game) => (
             <tr key={game.id} className="hover:bg-slate-800/30">
-              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {formatDateForDisplay(game.date)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {game.winner}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {game.score}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {game.went_first}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {game.knock ? 'Knock' : 'Gin'}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
+              <td className="px-6 py-4 whitespace-nowrap">
                 {game.undercut_by || '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 <GameActions
                   onEdit={() => handleEdit(game)}
-                  onDelete={() => deleteConfirm === game.id ? handleDelete(game.id) : setDeleteConfirm(game.id)}
+                  onDelete={() => setDeleteConfirm(game.id)}
                   showConfirm={deleteConfirm === game.id}
                   onCancelDelete={() => setDeleteConfirm(null)}
                 />

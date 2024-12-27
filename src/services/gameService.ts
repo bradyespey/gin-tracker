@@ -1,8 +1,8 @@
 import { supabase } from '../lib/supabase';
 import type { Game } from '../types/game';
 
-export async function deleteGame(id: string): Promise<void> {
-  const { error } = await supabase
+export async function deleteGame(id: string): Promise<boolean> {
+  const { data, error } = await supabase
     .from('games')
     .delete()
     .match({ id });
@@ -11,18 +11,23 @@ export async function deleteGame(id: string): Promise<void> {
     console.error('Error deleting game:', error);
     throw error;
   }
+
+  return !!data;
 }
 
-export async function updateGame(id: string, updates: Partial<Game>): Promise<void> {
-  const { error } = await supabase
+export async function updateGame(id: string, updates: Partial<Game>): Promise<boolean> {
+  const { data, error } = await supabase
     .from('games')
     .update(updates)
-    .match({ id });
+    .match({ id })
+    .select();
 
   if (error) {
     console.error('Error updating game:', error);
     throw error;
   }
+
+  return !!data?.length;
 }
 
 export async function fetchGames(): Promise<Game[]> {
