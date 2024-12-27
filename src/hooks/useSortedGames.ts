@@ -5,13 +5,17 @@ export function useSortedGames(games: Game[]) {
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Game;
     direction: 'asc' | 'desc';
-  }>({ key: 'date', direction: 'desc' });
+  }>({ key: 'game_number', direction: 'desc' });
 
   const handleSort = (key: keyof Game) => {
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
+  };
+
+  const resetSort = () => {
+    setSortConfig({ key: 'game_number', direction: 'desc' });
   };
 
   const sortedGames = useMemo(() => {
@@ -28,5 +32,5 @@ export function useSortedGames(games: Game[]) {
     });
   }, [games, sortConfig]);
 
-  return { sortedGames, sortConfig, handleSort };
+  return { sortedGames, sortConfig, handleSort, resetSort };
 }

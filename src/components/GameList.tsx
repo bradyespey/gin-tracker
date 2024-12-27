@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { EditGameModal } from './EditGameModal';
-import { GameActions } from './GameActions';
 import { GameTableHeader } from './GameTableHeader';
 import { GameTableRow } from './GameTableRow';
 import { GameFilters, type GameFilters as GameFiltersType } from './GameFilters';
+import { Pagination } from './Pagination';
 import { deleteGame, updateGame } from '../services/gameService';
 import { useSortedGames } from '../hooks/useSortedGames';
+import { usePagination } from '../hooks/usePagination';
 import type { Game, GameFormData } from '../types/game';
 
 interface GameListProps {
@@ -20,15 +21,26 @@ export function GameList({ games, onUpdate }: GameListProps) {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<GameFiltersType>({});
   
-  const { sortedGames, sortConfig, handleSort } = useSortedGames(games);
+  const { sortedGames, sortConfig, handleSort, resetSort } = useSortedGames(games);
 
   const filteredGames = sortedGames.filter(game => {
     if (filters.winner && game.winner !== filters.winner) return false;
     if (filters.type === 'Gin' && game.knock) return false;
     if (filters.type === 'Knock' && !game.knock) return false;
+    if (filters.type === 'Knock + Undercut' && (!game.knock || !game.undercut_by)) return false;
     if (filters.wentFirst && game.went_first !== filters.wentFirst) return false;
     return true;
   });
+
+  const {
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    paginatedItems,
+    pageSizeOptions
+  } = usePagination(filteredGames);
 
   const handleDelete = async (id: string) => {
     if (!id) return;
@@ -76,17 +88,28 @@ export function GameList({ games, onUpdate }: GameListProps) {
     }
   };
 
+  const resetFilters = () => {
+    setFilters({});
+    resetSort();
+    setCurrentPage(1);
+    setPageSize(10);
+  };
+
   return (
     <div>
-      <GameFilters filters={filters} onFilterChange={setFilters} />
-      <div className="overflow-x-auto">
+      <GameFilters 
+        filters={filters} 
+        onFilterChange={setFilters}
+        onReset={resetFilters}
+      />
+      <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-lg shadow">
         <table className="w-full">
           <GameTableHeader 
             sortConfig={sortConfig}
             onSort={handleSort}
           />
-          <tbody className="divide-y divide-slate-700/50">
-            {filteredGames.map((game) => (
+          <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+            {paginatedItems.map((game) => (
               <GameTableRow
                 key={game.id}
                 game={game}
@@ -98,6 +121,14 @@ export function GameList({ games, onUpdate }: GameListProps) {
             ))}
           </tbody>
         </table>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          pageSizeOptions={pageSizeOptions}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
 
       {editingGame && editFormData && (
