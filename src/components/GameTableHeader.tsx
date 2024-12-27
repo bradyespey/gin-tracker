@@ -68,7 +68,7 @@ export function GameTableHeader({ sortConfig, onSort }: GameTableHeaderProps) {
             Undercut
           </SortButton>
         </th>
-        <th className="px-6 py-3 text-right">Actions</th>
+        <th className="px-6 py-3 text-right text-slate-400">Actions</th>
       </tr>
     </thead>
   );

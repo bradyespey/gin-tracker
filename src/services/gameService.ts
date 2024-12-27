@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { Game } from '../types/game';
+import type { Game, GameFormData } from '../types/game';
 
 export async function deleteGame(id: string) {
   try {
@@ -16,8 +16,18 @@ export async function deleteGame(id: string) {
   }
 }
 
-export async function updateGame(id: string, updates: Partial<Game>) {
+export async function updateGame(id: string, formData: GameFormData) {
   try {
+    const updates = {
+      date: formData.date,
+      winner: formData.winner,
+      went_first: formData.went_first,
+      knock: formData.knock,
+      score: formData.knock ? (formData.deadwood_difference || 0) : 25,
+      deadwood_difference: formData.knock ? formData.deadwood_difference : null,
+      undercut_by: formData.undercut_by || null
+    };
+
     const { error } = await supabase
       .from('games')
       .update(updates)
