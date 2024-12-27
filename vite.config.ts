@@ -7,6 +7,12 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    open: false, // Disable automatic browser opening
+    open: false,
+    hmr: {
+      clientPort: 443
+    }
   },
+  preview: {
+    open: false
+  }
 });

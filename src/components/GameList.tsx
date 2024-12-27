@@ -24,15 +24,20 @@ export function GameList({ games, onUpdate }: GameListProps) {
 
   const handleDelete = async (id: string) => {
     if (!id) return;
+    setLoading(true);
     
     try {
       const { error } = await deleteGame(id);
-      if (!error) {
-        setDeleteConfirm(null);
-        onUpdate();
-      }
+      if (error) throw error;
+      
+      // Update local state first
+      const updatedGames = games.filter(game => game.id !== id);
+      onUpdate();
+      setDeleteConfirm(null);
     } catch (error) {
       console.error('Error deleting game:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,9 +56,10 @@ export function GameList({ games, onUpdate }: GameListProps) {
 
   const handleSaveEdit = async () => {
     if (!editingGame || !editFormData) return;
+    setLoading(true);
 
     try {
-      const { error } = await updateGame(editingGame.id, {
+      const updatedGame = {
         date: editFormData.date,
         winner: editFormData.winner,
         went_first: editFormData.went_first,
@@ -61,18 +67,29 @@ export function GameList({ games, onUpdate }: GameListProps) {
         score: calculateScore(editFormData),
         deadwood_difference: editFormData.deadwood_difference,
         undercut_by: editFormData.undercut_by || null
-      });
+      };
 
-      if (!error) {
-        setEditingGame(null);
-        setEditFormData(null);
-        onUpdate();
-      }
+      const { error } = await updateGame(editingGame.id, updatedGame);
+      if (error) throw error;
+
+      // Update local state first
+      const updatedGames = games.map(game => 
+        game.id === editingGame.id 
+          ? { ...game, ...updatedGame }
+          : game
+      );
+      
+      onUpdate();
+      setEditingGame(null);
+      setEditFormData(null);
     } catch (error) {
       console.error('Error updating game:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Rest of the component remains the same...
   const handleSort = (key: keyof Game) => {
     setSortConfig(prev => ({
       key,
@@ -117,16 +134,8 @@ export function GameList({ games, onUpdate }: GameListProps) {
                 First Player
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left text-slate-300">
-              <SortButton onClick={() => handleSort('knock')}>
-                Type
-              </SortButton>
-            </th>
-            <th className="px-6 py-3 text-left text-slate-300">
-              <SortButton onClick={() => handleSort('undercut_by')}>
-                Undercut
-              </SortButton>
-            </th>
+            <th className="px-6 py-3 text-left text-slate-300">Type</th>
+            <th className="px-6 py-3 text-left text-slate-300">Undercut</th>
             <th className="px-6 py-3 text-right text-slate-300">Actions</th>
           </tr>
         </thead>
