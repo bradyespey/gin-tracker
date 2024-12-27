@@ -48,7 +48,7 @@ export function NewGame() {
         winner: game.winner,
         went_first: game.went_first,
         knock: game.knock,
-        score: game.knock ? (game.deadwood_difference || 0) : 25,
+        score: game.knock ? (game.deadwood_difference || 0) : (game.score || 25),
         deadwood_difference: game.knock ? game.deadwood_difference : null,
         undercut_by: game.undercut_by || null
       }));
