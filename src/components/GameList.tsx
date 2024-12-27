@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
 import { EditGameModal } from './EditGameModal';
 import { GameActions } from './GameActions';
 import { SortButton } from './SortButton';
 import { formatDateForDisplay } from '../utils/dateUtils';
 import { calculateScore } from '../utils/gameUtils';
+import { deleteGame, updateGame } from '../services/gameService';
 import type { Game, GameFormData } from '../types/game';
 
 interface GameListProps {
@@ -27,14 +27,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
     
     try {
-      console.log('Deleting game:', id);
-      const { error } = await supabase
-        .from('games')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      console.log('Game deleted successfully');
+      await deleteGame(id);
       onUpdate();
     } catch (error) {
       console.error('Error deleting game:', error);
@@ -63,7 +56,6 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
 
     try {
-      console.log('Updating game:', editingGame.id);
       const updates = {
         date: editFormData.date,
         winner: editFormData.winner,
@@ -74,13 +66,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
         undercut_by: editFormData.undercut_by || null
       };
 
-      const { error } = await supabase
-        .from('games')
-        .update(updates)
-        .eq('id', editingGame.id);
-
-      if (error) throw error;
-      console.log('Game updated successfully');
+      await updateGame(editingGame.id, updates);
       onUpdate();
       setEditingGame(null);
       setEditFormData(null);
