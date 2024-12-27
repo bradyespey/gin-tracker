@@ -41,7 +41,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 rounded-lg border border-gray-300 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 rounded-lg border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -51,7 +51,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 rounded-lg border border-gray-300 dark:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 rounded-lg border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronRight className="h-4 w-4" />
         </button>

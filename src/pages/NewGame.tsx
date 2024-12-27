@@ -18,7 +18,6 @@ export function NewGame() {
     score: 25
   }]);
 
-  // Fetch last game to set default went_first
   useEffect(() => {
     async function fetchLastGame() {
       const { data: lastGames } = await supabase
@@ -57,5 +56,63 @@ export function NewGame() {
     }
   };
 
-  // Rest of the component remains the same...
+  const addGameForm = () => {
+    setGames(prev => [...prev, {
+      date: getLocalDate(),
+      winner: 'Brady',
+      went_first: prev[prev.length - 1].went_first === 'Brady' ? 'Jenny' : 'Brady',
+      knock: false,
+      score: 25
+    }]);
+  };
+
+  const updateGame = (index: number, updates: Partial<GameFormData>) => {
+    setGames(prev => prev.map((game, i) => 
+      i === index ? { ...game, ...updates } : game
+    ));
+  };
+
+  const removeGame = (index: number) => {
+    setGames(prev => prev.filter((_, i) => i !== index));
+  };
+
+  return (
+    <AuthGuard>
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+          New Game{games.length > 1 ? 's' : ''}
+        </h1>
+        
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {games.map((game, index) => (
+            <GameForm
+              key={index}
+              data={game}
+              onChange={updates => updateGame(index, updates)}
+              showRemove={games.length > 1}
+              onRemove={() => removeGame(index)}
+            />
+          ))}
+
+          <div className="flex justify-between">
+            <button
+              type="button"
+              onClick={addGameForm}
+              className="px-6 py-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              Add Another Game
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : `Save Game${games.length > 1 ? 's' : ''}`}
+            </button>
+          </div>
+        </form>
+      </div>
+    </AuthGuard>
+  );
 }
