@@ -23,22 +23,14 @@ export function GameList({ games, onUpdate }: GameListProps) {
   }>({ key: 'date', direction: 'desc' });
 
   const handleDelete = async (id: string) => {
-    console.log('Delete requested for game:', id);
-    
-    if (!id) {
-      console.error('Invalid game ID for deletion');
-      return;
-    }
-
+    if (!id) return;
     setLoading(true);
     
     try {
-      console.log('Initiating delete operation');
       await deleteGame(id);
-      console.log('Delete operation completed successfully');
       onUpdate();
     } catch (error) {
-      console.error('Delete operation failed in component:', error);
+      console.error('Error deleting game:', error);
       alert('Error deleting game. Please try again.');
     } finally {
       setLoading(false);
@@ -47,7 +39,6 @@ export function GameList({ games, onUpdate }: GameListProps) {
   };
 
   const handleEdit = (game: Game) => {
-    console.log('Edit requested for game:', game.id);
     setEditingGame(game);
     setEditFormData({
       date: game.date,
@@ -61,16 +52,11 @@ export function GameList({ games, onUpdate }: GameListProps) {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingGame || !editFormData) {
-      console.error('Missing data for edit operation');
-      return;
-    }
-
+    if (!editingGame || !editFormData) return;
     setLoading(true);
 
     try {
-      console.log('Preparing update payload');
-      const updates = {
+      await updateGame(editingGame.id, {
         date: editFormData.date,
         winner: editFormData.winner,
         went_first: editFormData.went_first,
@@ -78,16 +64,13 @@ export function GameList({ games, onUpdate }: GameListProps) {
         score: calculateScore(editFormData),
         deadwood_difference: editFormData.deadwood_difference,
         undercut_by: editFormData.undercut_by || null
-      };
-
-      console.log('Initiating update operation');
-      await updateGame(editingGame.id, updates);
-      console.log('Update operation completed successfully');
+      });
+      
       onUpdate();
       setEditingGame(null);
       setEditFormData(null);
     } catch (error) {
-      console.error('Update operation failed in component:', error);
+      console.error('Error updating game:', error);
       alert('Error updating game. Please try again.');
     } finally {
       setLoading(false);
@@ -118,56 +101,56 @@ export function GameList({ games, onUpdate }: GameListProps) {
       <table className="w-full">
         <thead className="bg-slate-800/50">
           <tr>
-            <th className="px-6 py-3 text-left">
+            <th className="px-6 py-3 text-left text-slate-300">
               <SortButton onClick={() => handleSort('date')}>
                 Date
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left">
+            <th className="px-6 py-3 text-left text-slate-300">
               <SortButton onClick={() => handleSort('winner')}>
                 Winner
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left">
+            <th className="px-6 py-3 text-left text-slate-300">
               <SortButton onClick={() => handleSort('score')}>
                 Score
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left">
+            <th className="px-6 py-3 text-left text-slate-300">
               <SortButton onClick={() => handleSort('went_first')}>
                 First Player
               </SortButton>
             </th>
-            <th className="px-6 py-3 text-left">Type</th>
-            <th className="px-6 py-3 text-left">Undercut</th>
-            <th className="px-6 py-3 text-right">Actions</th>
+            <th className="px-6 py-3 text-left text-slate-300">Type</th>
+            <th className="px-6 py-3 text-left text-slate-300">Undercut</th>
+            <th className="px-6 py-3 text-right text-slate-300">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-700/50">
           {sortedGames.map((game) => (
             <tr key={game.id} className="hover:bg-slate-800/30">
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
                 {formatDateForDisplay(game.date)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
                 {game.winner}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
                 {game.score}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
                 {game.went_first}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
                 {game.knock ? 'Knock' : 'Gin'}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-4 whitespace-nowrap text-slate-300">
                 {game.undercut_by || '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 <GameActions
                   onEdit={() => handleEdit(game)}
-                  onDelete={() => setDeleteConfirm(game.id)}
+                  onDelete={() => deleteConfirm === game.id ? handleDelete(game.id) : setDeleteConfirm(game.id)}
                   showConfirm={deleteConfirm === game.id}
                   onCancelDelete={() => setDeleteConfirm(null)}
                 />
