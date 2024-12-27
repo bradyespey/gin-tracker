@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { saveGameLocally, getLocalGames, updateGameLocally, deleteGameLocally } from '../lib/indexedDB';
+import { triggerSync } from '../lib/syncManager';
 import type { Game, GameFormData } from '../types/game';
 
 export async function deleteGame(id: string) {
@@ -11,10 +12,12 @@ export async function deleteGame(id: string) {
     
     if (error) {
       await deleteGameLocally(id);
+      await triggerSync();
     }
     return { error };
   } catch (error) {
     await deleteGameLocally(id);
+    await triggerSync();
     return { error };
   }
 }
@@ -37,18 +40,20 @@ export async function updateGame(id: string, formData: GameFormData) {
       .eq('id', id);
     
     if (error) {
-      await updateGameLocally(id, updates);
+      await updateGameLocally(id, { ...updates, syncStatus: 'pending' });
+      await triggerSync();
     }
     return { error };
   } catch (error) {
-    await updateGameLocally(id, formData);
+    await updateGameLocally(id, { ...formData, syncStatus: 'pending' });
+    await triggerSync();
     return { error };
   }
 }
 
 export async function fetchGames() {
   try {
-    const { data, error } = await supabase
+    const { data: onlineGames, error } = await supabase
       .from('games')
       .select('*')
       .order('date', { ascending: false });
@@ -57,8 +62,17 @@ export async function fetchGames() {
       const localGames = await getLocalGames();
       return { data: localGames, error: null };
     }
+
+    // Merge with local pending games
+    const localGames = await getLocalGames();
+    const pendingGames = localGames.filter(g => g.syncStatus === 'pending');
     
-    return { data: data || [], error: null };
+    return { 
+      data: [...pendingGames, ...(onlineGames || [])].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      ), 
+      error: null 
+    };
   } catch (error) {
     const localGames = await getLocalGames();
     return { data: localGames, error };
@@ -84,25 +98,31 @@ export async function addGame(formData: GameFormData) {
       .single();
 
     if (error) {
-      await saveGameLocally({
+      const localGame = {
         ...gameData,
-        id: crypto.randomUUID(),
+        id: `local-${crypto.randomUUID()}`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        game_number: -1
-      });
-      return { data: null, error };
+        game_number: -1,
+        syncStatus: 'pending'
+      };
+      await saveGameLocally(localGame);
+      await triggerSync();
+      return { data: localGame, error: null };
     }
 
     return { data, error: null };
   } catch (error) {
-    await saveGameLocally({
+    const localGame = {
       ...formData,
-      id: crypto.randomUUID(),
+      id: `local-${crypto.randomUUID()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      game_number: -1
-    });
-    return { data: null, error };
+      game_number: -1,
+      syncStatus: 'pending'
+    };
+    await saveGameLocally(localGame);
+    await triggerSync();
+    return { data: localGame, error: null };
   }
 }
