@@ -1,22 +1,22 @@
 import { openDB } from 'idb';
-import type { Game, GameFormData } from '../types/game';
+import type { Game } from '../types/game';
 
 const DB_NAME = 'GinRummyDB';
 const STORE_NAME = 'games';
 const DB_VERSION = 1;
 
 export async function initDB() {
-  const db = await openDB(DB_NAME, DB_VERSION, {
+  return openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         store.createIndex('date', 'date');
         store.createIndex('syncStatus', 'syncStatus');
         store.createIndex('game_number', 'game_number');
+        store.createIndex('created_at', 'created_at');
       }
     },
   });
-  return db;
 }
 
 export async function getNextGameNumber(): Promise<number> {
@@ -25,19 +25,27 @@ export async function getNextGameNumber(): Promise<number> {
   const store = tx.objectStore(STORE_NAME);
   const games = await store.getAll();
   
-  return Math.max(...games.map(g => g.game_number || 0), 0) + 1;
+  // Get max game number from both local and online games
+  const maxNumber = Math.max(
+    ...games.map(g => g.game_number || 0),
+    0
+  );
+  
+  return maxNumber + 1;
 }
 
 export async function saveGameLocally(game: Partial<Game>) {
   const db = await initDB();
   const nextNumber = await getNextGameNumber();
   
+  const timestamp = new Date().toISOString();
+  
   await db.add(STORE_NAME, {
     ...game,
     id: game.id || `local-${crypto.randomUUID()}`,
     game_number: nextNumber,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: timestamp,
+    updated_at: timestamp,
     syncStatus: 'pending'
   });
 }

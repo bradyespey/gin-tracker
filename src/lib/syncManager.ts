@@ -1,29 +1,36 @@
 import { supabase } from './supabase';
-import { getLocalGames, deleteGameLocally } from './indexedDB';
+import { getLocalGames, deleteGameLocally, updateGameLocally } from './indexedDB';
 
 export async function syncGames() {
+  if (!navigator.onLine) return;
+
   try {
-    // Get all pending local games
     const localGames = await getLocalGames();
     const pendingGames = localGames.filter(g => g.syncStatus === 'pending');
     
     if (!pendingGames.length) return;
 
-    // Sync each pending game
     for (const game of pendingGames) {
       const { id, syncStatus, ...gameData } = game;
       
       try {
-        const { error } = await supabase
+        // Try to insert the game
+        const { data, error } = await supabase
           .from('games')
           .insert({
             ...gameData,
-            // Don't send local ID if it's a temporary one
+            // Only include ID if it's not a temporary local ID
             id: id.startsWith('local-') ? undefined : id
-          });
+          })
+          .select()
+          .single();
 
-        if (!error) {
-          // If sync successful, remove from local DB
+        if (error) {
+          console.error('Failed to sync game:', error);
+          // Mark for retry by updating sync status
+          await updateGameLocally(id, { ...game, syncStatus: 'retry' });
+        } else {
+          // Successfully synced, remove local copy
           await deleteGameLocally(id);
         }
       } catch (e) {
@@ -36,9 +43,11 @@ export async function syncGames() {
 }
 
 export async function triggerSync() {
-  if ('serviceWorker' in navigator && 'sync' in navigator.serviceWorker) {
-    const registration = await navigator.serviceWorker.ready;
+  if (!navigator.onLine) return;
+
+  if ('serviceWorker' in navigator && 'sync' in registration) {
     try {
+      const registration = await navigator.serviceWorker.ready;
       await registration.sync.register('sync-games');
     } catch (err) {
       console.error('Background sync failed:', err);
@@ -50,3 +59,8 @@ export async function triggerSync() {
     await syncGames();
   }
 }
+
+// Listen for online events to trigger sync
+window.addEventListener('online', () => {
+  triggerSync();
+});

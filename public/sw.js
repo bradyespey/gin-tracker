@@ -1,45 +1,47 @@
+// Cache name for offline support
 const CACHE_NAME = 'gin-rummy-cache-v1';
-const OFFLINE_URL = '/offline.html';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        OFFLINE_URL,
-        '/src/main.tsx',
-        '/src/index.css'
-      ]);
-    })
+// Listen for sync events
+self.addEventListener('sync', async (event) => {
+  if (event.tag === 'sync-games') {
+    event.waitUntil(syncGames());
+  }
+});
+
+// Handle fetch events for offline support
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    fetch(event.request)
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match(OFFLINE_URL);
-      })
-    );
-  } else {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match(event.request);
-      })
-    );
-  }
-});
-
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-games') {
-    event.waitUntil(
-      fetch('/api/sync', {
+// Sync games with server
+async function syncGames() {
+  const db = await openDB();
+  const pendingGames = await db.getAll('games', 'syncStatus', 'pending');
+  
+  for (const game of pendingGames) {
+    try {
+      const response = await fetch('/rest/v1/games', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-    );
+          'Content-Type': 'application/json',
+          'apikey': self.SUPABASE_KEY,
+          'Authorization': `Bearer ${self.SUPABASE_KEY}`
+        },
+        body: JSON.stringify(game)
+      });
+
+      if (response.ok) {
+        await db.delete('games', game.id);
+      }
+    } catch (error) {
+      console.error('Sync failed for game:', error);
+    }
   }
-});
+}
