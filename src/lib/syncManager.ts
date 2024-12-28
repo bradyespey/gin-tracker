@@ -11,17 +11,13 @@ export async function syncGames() {
     if (!pendingGames.length) return;
 
     for (const game of pendingGames) {
-      const { id, syncStatus, ...gameData } = game;
+      const { id, syncStatus, game_number, created_at, updated_at, ...gameData } = game;
       
       try {
         // Try to insert the game
         const { data, error } = await supabase
           .from('games')
-          .insert({
-            ...gameData,
-            // Only include ID if it's not a temporary local ID
-            id: id.startsWith('local-') ? undefined : id
-          })
+          .insert(gameData)
           .select()
           .single();
 
@@ -32,6 +28,8 @@ export async function syncGames() {
         } else {
           // Successfully synced, remove local copy
           await deleteGameLocally(id);
+          // Trigger a refresh of the games list
+          window.dispatchEvent(new CustomEvent('gamesUpdated'));
         }
       } catch (e) {
         console.error('Error syncing game:', e);
@@ -45,22 +43,9 @@ export async function syncGames() {
 export async function triggerSync() {
   if (!navigator.onLine) return;
 
-  if ('serviceWorker' in navigator && 'sync' in registration) {
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      await registration.sync.register('sync-games');
-    } catch (err) {
-      console.error('Background sync failed:', err);
-      // Fallback to immediate sync
-      await syncGames();
-    }
-  } else {
-    // No service worker support, sync immediately
+  try {
     await syncGames();
+  } catch (err) {
+    console.error('Sync failed:', err);
   }
 }
-
-// Listen for online events to trigger sync
-window.addEventListener('online', () => {
-  triggerSync();
-});

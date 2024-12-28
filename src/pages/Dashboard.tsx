@@ -6,6 +6,7 @@ import { calculateStats } from '../lib/gameLogic';
 import { fetchGames } from '../services/gameService';
 import { useAuth } from '../context/AuthContext';
 import { formatNumber } from '../utils/numberFormat';
+import { triggerSync } from '../lib/syncManager';
 import type { Game, Stats } from '../types/game';
 
 export function Dashboard() {
@@ -35,6 +36,17 @@ export function Dashboard() {
 
   useEffect(() => {
     loadGames();
+    // Try to sync any pending games when component mounts
+    triggerSync();
+  }, [loadGames]);
+
+  // Listen for games updated event
+  useEffect(() => {
+    const handleGamesUpdated = () => {
+      loadGames();
+    };
+    window.addEventListener('gamesUpdated', handleGamesUpdated);
+    return () => window.removeEventListener('gamesUpdated', handleGamesUpdated);
   }, [loadGames]);
 
   if (!user) {
@@ -54,15 +66,11 @@ export function Dashboard() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Brady</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.bradyScore)}
-              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.bradyScore)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Jenny</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.jennyScore)}
-              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.jennyScore)}</p>
             </div>
           </div>
         </div>
@@ -72,21 +80,15 @@ export function Dashboard() {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Games</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.totalGames)}
-              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.totalGames)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Brady Wins</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.bradyWins)}
-              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.bradyWins)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Jenny Wins</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {formatNumber(stats.jennyWins)}
-              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.jennyWins)}</p>
             </div>
           </div>
         </div>
@@ -97,9 +99,7 @@ export function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Average Score</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatNumber(stats.averageScore)}
-            </p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.averageScore)}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Gin %</p>
