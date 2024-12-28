@@ -1,47 +1,33 @@
 import { supabase } from './supabase';
-import { getLocalGames, deleteGameLocally, updateGameLocally } from './indexedDB';
-import type { Game } from '../types/game';
+import { getLocalGames, deleteGameLocally } from './indexedDB';
 
 export async function syncGames() {
   try {
-    // Get all local games
+    // Get all pending local games
     const localGames = await getLocalGames();
-    if (!localGames.length) return;
+    const pendingGames = localGames.filter(g => g.syncStatus === 'pending');
+    
+    if (!pendingGames.length) return;
 
-    // Get online games
-    const { data: onlineGames, error } = await supabase
-      .from('games')
-      .select('*');
+    // Sync each pending game
+    for (const game of pendingGames) {
+      const { id, syncStatus, ...gameData } = game;
+      
+      try {
+        const { error } = await supabase
+          .from('games')
+          .insert({
+            ...gameData,
+            // Don't send local ID if it's a temporary one
+            id: id.startsWith('local-') ? undefined : id
+          });
 
-    if (error) throw error;
-
-    // Sync each local game
-    for (const localGame of localGames) {
-      if (localGame.syncStatus === 'pending') {
-        try {
-          const { error: syncError } = await supabase
-            .from('games')
-            .upsert({
-              ...localGame,
-              id: localGame.id.startsWith('local-') ? undefined : localGame.id
-            });
-
-          if (!syncError) {
-            await deleteGameLocally(localGame.id);
-          }
-        } catch (e) {
-          console.error('Error syncing game:', e);
+        if (!error) {
+          // If sync successful, remove from local DB
+          await deleteGameLocally(id);
         }
-      }
-    }
-
-    // Update local store with any new online games
-    if (onlineGames) {
-      for (const onlineGame of onlineGames) {
-        const localGame = localGames.find(g => g.id === onlineGame.id);
-        if (!localGame) {
-          await updateGameLocally(onlineGame.id, onlineGame);
-        }
+      } catch (e) {
+        console.error('Error syncing game:', e);
       }
     }
   } catch (error) {
