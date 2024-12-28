@@ -42,13 +42,12 @@ export async function updateGame(id: string, formData: GameFormData) {
       knock: formData.knock,
       score: formData.knock ? Number(formData.deadwood_difference || 0) : Number(formData.score || 25),
       deadwood_difference: formData.knock ? Number(formData.deadwood_difference) : null,
-      undercut_by: formData.undercut_by || null,
-      syncStatus: 'pending'
+      undercut_by: formData.undercut_by || null
     };
 
     // If it's a local game, just update locally
     if (id.startsWith('local-')) {
-      await updateGameLocally(id, updates);
+      await updateGameLocally(id, { ...updates, syncStatus: 'pending' });
       return { error: null };
     }
 
@@ -57,15 +56,19 @@ export async function updateGame(id: string, formData: GameFormData) {
       const { error } = await supabase
         .from('games')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
       
       if (!error) {
+        // Dispatch event to update UI
+        window.dispatchEvent(new CustomEvent('gamesUpdated'));
         return { error: null };
       }
     }
     
     // If offline or error, save update locally
-    await updateGameLocally(id, updates);
+    await updateGameLocally(id, { ...updates, syncStatus: 'pending' });
     await triggerSync();
     return { error: null };
   } catch (error) {
@@ -95,6 +98,8 @@ export async function addGame(formData: GameFormData) {
         .single();
 
       if (!error && data) {
+        // Dispatch event to update UI
+        window.dispatchEvent(new CustomEvent('gamesUpdated'));
         return { data, error: null };
       }
     }
