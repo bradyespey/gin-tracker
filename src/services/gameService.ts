@@ -56,7 +56,7 @@ export async function fetchGames() {
     const { data: onlineGames, error } = await supabase
       .from('games')
       .select('*')
-      .order('date', { ascending: false });
+      .order('game_number', { ascending: false });
     
     if (error) {
       const localGames = await getLocalGames();
@@ -67,9 +67,10 @@ export async function fetchGames() {
     const localGames = await getLocalGames();
     const pendingGames = localGames.filter(g => g.syncStatus === 'pending');
     
+    // Sort by game number descending
     return { 
       data: [...pendingGames, ...(onlineGames || [])].sort((a, b) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
+        (b.game_number || 0) - (a.game_number || 0)
       ), 
       error: null 
     };
@@ -98,12 +99,14 @@ export async function addGame(formData: GameFormData) {
       .single();
 
     if (error) {
+      // For offline games, use a temporary high number that will be fixed when synced
+      const maxGameNumber = Math.max(...(await getLocalGames()).map(g => g.game_number || 0), 0);
       const localGame = {
         ...gameData,
         id: `local-${crypto.randomUUID()}`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        game_number: -1,
+        game_number: maxGameNumber + 1,
         syncStatus: 'pending'
       };
       await saveGameLocally(localGame);
@@ -113,12 +116,13 @@ export async function addGame(formData: GameFormData) {
 
     return { data, error: null };
   } catch (error) {
+    const maxGameNumber = Math.max(...(await getLocalGames()).map(g => g.game_number || 0), 0);
     const localGame = {
       ...formData,
       id: `local-${crypto.randomUUID()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      game_number: -1,
+      game_number: maxGameNumber + 1,
       syncStatus: 'pending'
     };
     await saveGameLocally(localGame);

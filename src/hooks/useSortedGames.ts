@@ -23,7 +23,13 @@ export function useSortedGames(games: Game[]) {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
       
-      if (aValue === bValue) return 0;
+      if (aValue === bValue) {
+        // Secondary sort by game_number when primary sort values are equal
+        const aNum = a.game_number;
+        const bNum = b.game_number;
+        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+      
       if (aValue === null) return 1;
       if (bValue === null) return -1;
       
