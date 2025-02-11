@@ -155,14 +155,6 @@ This page allows users to log a new Gin Rummy game by entering the game type and
 
 ---
 
-## 📌 Additional Notes
-- Protected routes ensure only authenticated users can modify data.
-- Future improvements:
-  - Improve performance for large game history.
-  - Add more detailed statistics and win streak tracking.
-
----
-
 ## 🎉 **Contributing**
 For any issues or feature requests, please open an issue on **[GitHub](https://github.com/bradyespey/gin-tracker/issues)**.
 
@@ -170,21 +162,3 @@ For any issues or feature requests, please open an issue on **[GitHub](https://g
 
 ## 📜 License
 This project is licensed under the **MIT License**.
-
----
-
-## 💬 Contact
-For any questions or issues, feel free to **email Brady** at `baespey@gmail.com`.
-
----
-
-## ✅ Next Steps
-1. **Make the repository public** in GitHub.
-   - Go to **Settings > General > Change repository visibility > Public**.
-2. **Ensure `.env` files are not committed** (sensitive credentials).
-3. **Update README in GitHub** before publishing.
-
----
-
-### 🎯 **Final Thoughts**
-This README provides **everything needed** for a **public showcase**, including setup, security details, and code structure. Let me know if you’d like any tweaks before making the repo public!
