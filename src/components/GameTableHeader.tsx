@@ -1,3 +1,5 @@
+//src/components/GameTableHeader.tsx
+
 import React from 'react';
 import { SortButton } from './SortButton';
 import type { Game } from '../types/game';

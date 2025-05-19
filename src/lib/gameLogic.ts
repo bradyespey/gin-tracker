@@ -1,3 +1,5 @@
+//src/lib/gameLogic.ts
+
 import type { Game, GameFormData, Stats } from '../types/game';
 
 export function calculateScore(knock: boolean, deadwoodDifference?: number, score?: number): number {

@@ -1,3 +1,5 @@
+//src/components/AuthButton.tsx
+
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle, signOut } from '../lib/auth';

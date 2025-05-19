@@ -1,3 +1,5 @@
+//src/components/GameForm.tsx
+
 import React from 'react';
 import type { GameFormData } from '../types/game';
 

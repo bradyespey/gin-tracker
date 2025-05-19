@@ -1,3 +1,5 @@
+//src/components/GameList.tsx
+
 import React, { useState } from 'react';
 import { EditGameModal } from './EditGameModal';
 import { GameTableHeader } from './GameTableHeader';

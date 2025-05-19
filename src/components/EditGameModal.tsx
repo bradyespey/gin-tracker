@@ -1,3 +1,5 @@
+//src/components/EditGameModal.tsx
+
 import React from 'react';
 import { X } from 'lucide-react';
 import { GameForm } from './GameForm';

@@ -1,3 +1,5 @@
+//src/components/GameFilters.tsx
+
 import React from 'react';
 import { RotateCcw } from 'lucide-react';
 import type { Game } from '../types/game';

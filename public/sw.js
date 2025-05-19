@@ -1,4 +1,5 @@
-// Cache name for offline support
+//public/sw.js
+
 const CACHE_NAME = 'gin-rummy-cache-v1';
 
 // Listen for sync events

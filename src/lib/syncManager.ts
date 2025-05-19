@@ -1,3 +1,5 @@
+//src/lib/syncManager.ts
+
 import { supabase } from './supabase';
 import { getLocalGames, deleteGameLocally, updateGameLocally } from './indexedDB';
 

@@ -1,3 +1,5 @@
+//src/lib/offlineStorage.ts
+
 import { supabase } from './supabase';
 import { saveGameLocally, getLocalGames, syncPendingGames } from './indexedDB';
 import type { Game, GameFormData } from '../types/game';

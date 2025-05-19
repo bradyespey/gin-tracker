@@ -1,3 +1,5 @@
+//src/services/gameService.ts
+
 import { supabase } from '../lib/supabase';
 import { saveGameLocally, getLocalGames, updateGameLocally, deleteGameLocally, getNextGameNumber } from '../lib/indexedDB';
 import { triggerSync } from '../lib/syncManager';

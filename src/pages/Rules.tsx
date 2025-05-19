@@ -1,3 +1,5 @@
+//src/pages/Rules.tsx
+
 import React from 'react';
 
 export function Rules() {

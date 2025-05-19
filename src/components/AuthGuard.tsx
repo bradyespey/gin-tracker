@@ -1,3 +1,5 @@
+//src/components/AuthGuard.tsx
+
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { isAllowedEmail } from '../lib/auth';

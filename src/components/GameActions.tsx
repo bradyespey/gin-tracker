@@ -1,3 +1,5 @@
+//src/components/GameActions.tsx
+
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 

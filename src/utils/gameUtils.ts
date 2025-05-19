@@ -1,3 +1,5 @@
+//src/utils/gameUtils.ts
+
 import type { GameFormData } from '../types/game';
 
 export function calculateScore(formData: GameFormData): number {

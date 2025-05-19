@@ -1,3 +1,5 @@
+//src/components/GameTableRow.tsx
+
 import React from 'react';
 import { GameActions } from './GameActions';
 import { formatDateForDisplay } from '../utils/dateUtils';

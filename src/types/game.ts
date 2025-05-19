@@ -1,3 +1,5 @@
+//src/types/game.ts
+
 export interface Game {
   id: string;
   game_number: number;

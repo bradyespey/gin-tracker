@@ -1,3 +1,5 @@
+//src/lib/indexedDB.ts
+
 import { openDB } from 'idb';
 import type { Game } from '../types/game';
 
