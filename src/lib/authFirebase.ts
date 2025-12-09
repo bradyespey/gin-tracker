@@ -1,5 +1,3 @@
-//src/lib/auth.ts
-
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from './firebase';
 
@@ -31,3 +29,4 @@ export const isAllowedEmail = (email?: string | null) => {
   if (!email) return false;
   return ALLOWED_EMAILS.includes(email);
 };
+

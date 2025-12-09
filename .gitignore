@@ -65,6 +65,7 @@ Thumbs.db
 ehthumbs.db
 
 # Project-specific directories
+backup/
 flask/
 gas/
 old/

@@ -1,5 +1,3 @@
-//src/services/gameService.ts
-
 import { db } from '../lib/firebase';
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { saveGameLocally, getLocalGames, updateGameLocally, deleteGameLocally, getNextGameNumber } from '../lib/indexedDB';
@@ -38,7 +36,13 @@ export async function deleteGame(id: string) {
       return { error: null };
     }
     
-    // If offline, mark for deletion locally
+    // If offline, mark for deletion locally (not fully implemented in original for non-local games?
+    // Original code: await deleteGameLocally(id);
+    // But deleteGameLocally only works if it exists in IndexedDB.
+    // If we only cache pending games, we can't delete "online" games offline easily unless we cache everything.
+    // Original fetchGames returns localGames IF offline.
+    // So offline mode only shows local games + maybe cached ones?
+    // Let's stick to original behavior:
     await deleteGameLocally(id);
     await triggerSync();
     return { error: null };
@@ -160,6 +164,9 @@ export async function fetchGames() {
 
     // Merge online and pending local games
     const pendingGames = localGames.filter(g => g.syncStatus === 'pending');
+    // Note: pendingGames might duplicate if we just fetched them from online? 
+    // No, pending means not synced yet.
+    
     const allGames = [...pendingGames, ...onlineGames];
     
     // Calculate game numbers on the fly
@@ -181,3 +188,4 @@ export async function fetchGames() {
     return { data: localGames, error };
   }
 }
+

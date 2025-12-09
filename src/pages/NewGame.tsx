@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { AuthGuard } from '../components/AuthGuard';
 import { GameForm } from '../components/GameForm';
 import { getLocalDate } from '../utils/dateUtils';
@@ -22,19 +23,21 @@ export function NewGame() {
 
   useEffect(() => {
     async function fetchLastGame() {
-      const { data: lastGames } = await supabase
-        .from('games')
-        .select('went_first')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (lastGames?.length) {
-        setGames(prev => prev.map((game, index) => 
-          index === 0 ? {
-            ...game,
-            went_first: lastGames[0].went_first === 'Brady' ? 'Jenny' : 'Brady'
-          } : game
-        ));
+      try {
+        const q = query(collection(db, 'games'), orderBy('created_at', 'desc'), limit(1));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const lastGame = querySnapshot.docs[0].data();
+          setGames(prev => prev.map((game, index) => 
+            index === 0 ? {
+              ...game,
+              went_first: lastGame.went_first === 'Brady' ? 'Jenny' : 'Brady'
+            } : game
+          ));
+        }
+      } catch (error) {
+        console.error('Error fetching last game:', error);
       }
     }
     fetchLastGame();
