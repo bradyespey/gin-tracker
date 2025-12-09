@@ -3,7 +3,7 @@
 import { db } from '../lib/firebase';
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { saveGameLocally, getLocalGames, updateGameLocally, deleteGameLocally, getNextGameNumber } from '../lib/indexedDB';
-import { triggerSync } from '../lib/syncManagerFirebase';
+import { triggerSync } from '../lib/syncManager';
 import type { Game, GameFormData } from '../types/game';
 
 // Helper to calculate game numbers based on date and creation time

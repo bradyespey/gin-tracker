@@ -8,7 +8,6 @@ import { NewGame } from './pages/NewGame';
 import { Rules } from './pages/Rules';
 import { AuthCallback } from './pages/AuthCallback';
 import { AuthProvider } from './context/AuthContext';
-import { MigrationTool } from './components/MigrationTool';
 
 export default function App() {
   // Add system theme detection
@@ -39,7 +38,6 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/gin" replace />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/migrate" element={<MigrationTool />} />
           <Route path="/gin" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="new" element={<NewGame />} />

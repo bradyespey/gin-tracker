@@ -8,7 +8,7 @@ import { calculateStats } from '../lib/gameLogic';
 import { fetchGames } from '../services/gameService';
 import { useAuth } from '../context/AuthContext';
 import { formatNumber } from '../utils/numberFormat';
-import { triggerSync } from '../lib/syncManagerFirebase';
+import { triggerSync } from '../lib/syncManager';
 import type { Game, Stats } from '../types/game';
 
 export function Dashboard() {
