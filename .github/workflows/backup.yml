@@ -1,9 +1,9 @@
-name: Monthly Data Backup
+name: Weekly Data Backup
 
 on:
   schedule:
-    # Run at 00:00 every Monday
-    - cron: '0 0 * * 1'
+    # Run at midnight Central Time (06:00 UTC) every Monday
+    - cron: '0 6 * * 1'
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 permissions:
