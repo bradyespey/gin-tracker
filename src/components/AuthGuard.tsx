@@ -9,7 +9,7 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, isDemo } = useAuth();
   
   if (loading) {
     return (
@@ -19,7 +19,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  if (!user || !isAllowedEmail(user.email)) {
+  // Allow access if user is logged in OR it's demo mode
+  if ((!user || !isAllowedEmail(user.email)) && !isDemo) {
     return (
       <div className="text-center p-8">
         <p className="text-red-600 mb-4">Please sign in with an authorized email to access this feature.</p>

@@ -7,6 +7,7 @@ import { GameTableRow } from './GameTableRow';
 import { GameFilters, type GameFilters as GameFiltersType } from './GameFilters';
 import { Pagination } from './Pagination';
 import { deleteGame, updateGame } from '../services/gameService';
+import { deleteMockGame, updateMockGame } from '../services/demoGameService';
 import { useSortedGames } from '../hooks/useSortedGames';
 import { usePagination } from '../hooks/usePagination';
 import type { Game, GameFormData } from '../types/game';
@@ -14,9 +15,10 @@ import type { Game, GameFormData } from '../types/game';
 interface GameListProps {
   games: Game[];
   onUpdate: () => void;
+  isDemo?: boolean;
 }
 
-export function GameList({ games, onUpdate }: GameListProps) {
+export function GameList({ games, onUpdate, isDemo }: GameListProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
   const [editFormData, setEditFormData] = useState<GameFormData | null>(null);
@@ -49,7 +51,10 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
     
     try {
-      const { error } = await deleteGame(id);
+      const { error } = isDemo 
+        ? await deleteMockGame(id)
+        : await deleteGame(id);
+      
       if (error) throw error;
       onUpdate();
     } catch (error) {
@@ -78,7 +83,10 @@ export function GameList({ games, onUpdate }: GameListProps) {
     setLoading(true);
 
     try {
-      const { error } = await updateGame(editingGame.id, editFormData);
+      const { error } = isDemo
+        ? await updateMockGame(editingGame.id, editFormData)
+        : await updateGame(editingGame.id, editFormData);
+        
       if (error) throw error;
       onUpdate();
     } catch (error) {
@@ -119,6 +127,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
                 onDelete={() => deleteConfirm === game.id ? handleDelete(game.id) : setDeleteConfirm(game.id)}
                 showConfirm={deleteConfirm === game.id}
                 onCancelDelete={() => setDeleteConfirm(null)}
+                isDemo={isDemo}
               />
             ))}
           </tbody>
@@ -143,6 +152,7 @@ export function GameList({ games, onUpdate }: GameListProps) {
           onSave={handleSaveEdit}
           onChange={updates => setEditFormData(prev => prev ? { ...prev, ...updates } : null)}
           loading={loading}
+          isDemo={isDemo}
         />
       )}
     </div>

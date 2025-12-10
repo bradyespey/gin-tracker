@@ -12,14 +12,22 @@ interface GameTableRowProps {
   onDelete: () => void;
   showConfirm: boolean;
   onCancelDelete: () => void;
+  isDemo?: boolean;
 }
+
+const formatPlayerName = (name: string | null | undefined, isDemo?: boolean) => {
+  if (!name) return '-';
+  if (!isDemo) return name;
+  return name === 'Brady' ? 'User 1' : name === 'Jenny' ? 'User 2' : name;
+};
 
 export function GameTableRow({ 
   game, 
   onEdit, 
   onDelete, 
   showConfirm, 
-  onCancelDelete 
+  onCancelDelete,
+  isDemo
 }: GameTableRowProps) {
   return (
     <tr className="hover:bg-slate-800/30">
@@ -30,19 +38,19 @@ export function GameTableRow({
         {formatDateForDisplay(game.date)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
-        {game.winner}
+        {formatPlayerName(game.winner, isDemo)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
         {formatNumber(game.score)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
-        {game.went_first}
+        {formatPlayerName(game.went_first, isDemo)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
         {game.knock ? 'Knock' : 'Gin'}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300">
-        {game.undercut_by || '-'}
+        {formatPlayerName(game.undercut_by, isDemo)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-slate-300 text-right">
         <GameActions

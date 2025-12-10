@@ -11,9 +11,10 @@ interface EditGameModalProps {
   onSave: () => void;
   onChange: (updates: Partial<GameFormData>) => void;
   loading: boolean;
+  isDemo?: boolean;
 }
 
-export function EditGameModal({ formData, onClose, onSave, onChange, loading }: EditGameModalProps) {
+export function EditGameModal({ formData, onClose, onSave, onChange, loading, isDemo }: EditGameModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-slate-900 rounded-xl p-6 w-full max-w-3xl">
@@ -30,6 +31,7 @@ export function EditGameModal({ formData, onClose, onSave, onChange, loading }: 
         <GameForm
           data={formData}
           onChange={onChange}
+          isDemo={isDemo}
         />
 
         <div className="flex justify-end gap-4 mt-6">

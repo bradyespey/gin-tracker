@@ -4,6 +4,8 @@
 ## Overview
 Web application for tracking Gin Rummy games between two players (Brady and Jenny) with real-time score updates. Replaces manual Google Sheets tracking with a modern web interface featuring authentication, offline support, comprehensive statistics, and automated weekly backups.
 
+Now features a **Public Demo Mode** that allows visitors to explore the application with mock data while protecting real user information.
+
 ## Live and Admin
 - 🌐 **App URL**: https://gin.theespeys.com
 - 🚀 **Netlify Dashboard**: gintracker
@@ -12,7 +14,17 @@ Web application for tracking Gin Rummy games between two players (Brady and Jenn
 - 📊 **GitHub Repo**: https://github.com/bradyespey/gin-tracker
 - 💾 **Backups**: Automated weekly backups via GitHub Actions (data-backups/games.json)
 
-## Tech Stack
+## Features & Demo Mode
+
+### Public Demo Mode
+Visitors can access the site without logging in to experience the full UI:
+- **Mock Data**: Uses in-memory mock games to populate the dashboard.
+- **Privacy First**: Real user names are masked as "User 1" and "User 2".
+- **Sandbox Environment**: Visitors can add, edit, and delete games locally without affecting the real database. Changes are reset on refresh.
+- **Full Scope**: Includes access to the Dashboard, New Game form, and Game List with filtering and sorting.
+
+### Core Features
+- **Real-Time Tracking**: Log game results instantly.
 - ⚛️ **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
 - 🗄️ **Backend**: Firebase (Firestore + Auth)
 - 🔐 **Auth**: Firebase Google OAuth with email restrictions
@@ -89,7 +101,7 @@ GinTracker/
 │   ├── context/            # AuthContext for Firebase Auth
 │   ├── hooks/              # Custom hooks (usePagination, useSortedGames)
 │   ├── lib/                # Core utilities (gameLogic, firebase, syncManager, indexedDB)
-│   ├── services/           # API services (gameService with offline support)
+│   ├── services/           # API services (gameService with offline support, demoGameService for demo mode)
 │   ├── types/             # TypeScript type definitions
 │   └── utils/             # Helper functions (dateUtils, gameUtils, numberFormat)
 ├── scripts/
@@ -110,6 +122,12 @@ GinTracker/
 - `addGame()`: Creates new game (online to Firestore, offline to IndexedDB)
 - `updateGame()`: Updates existing game with sync support
 - `deleteGame()`: Deletes game with offline fallback
+
+### Demo Game Service (`src/services/demoGameService.ts`)
+- `fetchMockGames()`: Returns in-memory mock games for demo mode (15 games over past year)
+- `addMockGame()`: Adds new game to in-memory storage (resets on refresh)
+- `updateMockGame()`: Updates mock game in memory (resets on refresh)
+- `deleteMockGame()`: Deletes mock game from memory (resets on refresh)
 
 ### Sync Manager (`src/lib/syncManager.ts`)
 - `syncGames()`: Syncs pending local games to Firestore when online

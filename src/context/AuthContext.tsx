@@ -8,9 +8,10 @@ import { isAllowedEmail } from '../lib/auth';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isDemo: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({ user: null, loading: true, isDemo: false });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -36,8 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const isDemo = !loading && !user;
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, isDemo }}>
       {children}
     </AuthContext.Provider>
   );

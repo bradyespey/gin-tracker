@@ -8,10 +8,13 @@ import { AuthGuard } from '../components/AuthGuard';
 import { GameForm } from '../components/GameForm';
 import { getLocalDate } from '../utils/dateUtils';
 import { addGame } from '../services/gameService';
+import { addMockGame } from '../services/demoGameService';
+import { useAuth } from '../context/AuthContext';
 import type { GameFormData } from '../types/game';
 
 export function NewGame() {
   const navigate = useNavigate();
+  const { user, isDemo } = useAuth();
   const [loading, setLoading] = useState(false);
   const [games, setGames] = useState<GameFormData[]>([{
     date: getLocalDate(),
@@ -23,6 +26,9 @@ export function NewGame() {
 
   useEffect(() => {
     async function fetchLastGame() {
+      // In demo mode (no user) we don't look at real Firestore data
+      if (!user || isDemo) return;
+
       try {
         const q = query(collection(db, 'games'), orderBy('created_at', 'desc'), limit(1));
         const querySnapshot = await getDocs(q);
@@ -41,7 +47,7 @@ export function NewGame() {
       }
     }
     fetchLastGame();
-  }, []);
+  }, [user, isDemo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +55,10 @@ export function NewGame() {
 
     try {
       for (const game of games) {
-        const { error } = await addGame(game);
+        // Only use mock service if no user AND in demo mode
+        const { error } = (!user && isDemo)
+          ? await addMockGame(game)
+          : await addGame(game);
         if (error) throw error;
       }
       navigate('/gin');
@@ -96,6 +105,7 @@ export function NewGame() {
               onChange={updates => updateGame(index, updates)}
               showRemove={games.length > 1}
               onRemove={() => removeGame(index)}
+              isDemo={!user && isDemo}
             />
           ))}
 

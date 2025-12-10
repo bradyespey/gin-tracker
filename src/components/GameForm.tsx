@@ -8,9 +8,13 @@ interface GameFormProps {
   onChange: (updates: Partial<GameFormData>) => void;
   showRemove?: boolean;
   onRemove?: () => void;
+  isDemo?: boolean;
 }
 
-export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps) {
+export function GameForm({ data, onChange, showRemove, onRemove, isDemo }: GameFormProps) {
+  const p1Name = isDemo ? 'User 1' : 'Brady';
+  const p2Name = isDemo ? 'User 2' : 'Jenny';
+
   const handleChange = (updates: Partial<GameFormData>) => {
     if ('knock' in updates) {
       if (updates.knock) {
@@ -65,7 +69,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                 : 'border-slate-700 text-slate-400 hover:border-slate-600'
             }`}
           >
-            Brady
+            {p1Name}
           </button>
           <button
             type="button"
@@ -76,7 +80,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                 : 'border-slate-700 text-slate-400 hover:border-slate-600'
             }`}
           >
-            Jenny
+            {p2Name}
           </button>
         </div>
       </div>
@@ -95,7 +99,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                 : 'border-slate-700 text-slate-400 hover:border-slate-600'
             }`}
           >
-            Brady
+            {p1Name}
           </button>
           <button
             type="button"
@@ -106,7 +110,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                 : 'border-slate-700 text-slate-400 hover:border-slate-600'
             }`}
           >
-            Jenny
+            {p2Name}
           </button>
         </div>
       </div>
@@ -195,7 +199,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                     : 'border-slate-700 text-slate-400 hover:border-slate-600'
                 }`}
               >
-                Brady
+                {p1Name}
               </button>
               <button
                 type="button"
@@ -206,7 +210,7 @@ export function GameForm({ data, onChange, showRemove, onRemove }: GameFormProps
                     : 'border-slate-700 text-slate-400 hover:border-slate-600'
                 }`}
               >
-                Jenny
+                {p2Name}
               </button>
             </div>
           </div>

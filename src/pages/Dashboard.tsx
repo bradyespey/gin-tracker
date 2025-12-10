@@ -6,13 +6,14 @@ import { PlusCircle } from 'lucide-react';
 import { GameList } from '../components/GameList';
 import { calculateStats } from '../lib/gameLogic';
 import { fetchGames } from '../services/gameService';
+import { fetchMockGames } from '../services/demoGameService';
 import { useAuth } from '../context/AuthContext';
 import { formatNumber } from '../utils/numberFormat';
 import { triggerSync } from '../lib/syncManager';
 import type { Game, Stats } from '../types/game';
 
 export function Dashboard() {
-  const { user } = useAuth();
+  const { user, isDemo } = useAuth();
   const [games, setGames] = useState<Game[]>([]);
   const [stats, setStats] = useState<Stats>({
     bradyScore: 0,
@@ -27,20 +28,26 @@ export function Dashboard() {
   });
 
   const loadGames = useCallback(async () => {
-    const { data, error } = await fetchGames();
+    // Only use demo mode if there's no user - if user is logged in, always use real service
+    const { data, error } = (!user && isDemo)
+      ? await fetchMockGames()
+      : await fetchGames();
+      
     if (error) {
       console.error('Error fetching games:', error);
       return;
     }
     setGames(data);
     setStats(calculateStats(data));
-  }, []);
+  }, [user, isDemo]);
 
   useEffect(() => {
     loadGames();
-    // Try to sync any pending games when component mounts
-    triggerSync();
-  }, [loadGames]);
+    // Try to sync any pending games when component mounts, only if not in demo mode
+    if (!isDemo) {
+      triggerSync();
+    }
+  }, [loadGames, isDemo]);
 
   // Listen for games updated event
   useEffect(() => {
@@ -51,7 +58,7 @@ export function Dashboard() {
     return () => window.removeEventListener('gamesUpdated', handleGamesUpdated);
   }, [loadGames]);
 
-  if (!user) {
+  if (!user && !isDemo) {
     return (
       <div className="text-center">
         <h1 className="text-2xl font-bold text-slate-100 mb-4">Welcome to Gin Rummy Tracker</h1>
@@ -60,18 +67,29 @@ export function Dashboard() {
     );
   }
 
+  const p1Name = isDemo ? 'User 1' : 'Brady';
+  const p2Name = isDemo ? 'User 2' : 'Jenny';
+
   return (
     <div className="space-y-8">
+      {isDemo && (
+        <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 mb-6">
+          <p className="text-blue-200 text-center text-sm">
+            <strong>Demo Mode Enabled:</strong> You are viewing mock data. Changes will not be saved.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Overall Score</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Brady</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{p1Name}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.bradyScore)}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Jenny</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{p2Name}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.jennyScore)}</p>
             </div>
           </div>
@@ -85,11 +103,11 @@ export function Dashboard() {
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.totalGames)}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Brady Wins</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{p1Name} Wins</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.bradyWins)}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Jenny Wins</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{p2Name} Wins</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(stats.jennyWins)}</p>
             </div>
           </div>
@@ -130,7 +148,7 @@ export function Dashboard() {
 
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Games</h2>
-        <GameList games={games} onUpdate={loadGames} />
+        <GameList games={games} onUpdate={loadGames} isDemo={isDemo} />
       </div>
     </div>
   );
