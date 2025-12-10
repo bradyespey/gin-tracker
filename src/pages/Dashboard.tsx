@@ -28,8 +28,7 @@ export function Dashboard() {
   });
 
   const loadGames = useCallback(async () => {
-    // Only use demo mode if there's no user - if user is logged in, always use real service
-    const { data, error } = (!user && isDemo)
+    const { data, error } = isDemo 
       ? await fetchMockGames()
       : await fetchGames();
       
@@ -39,7 +38,7 @@ export function Dashboard() {
     }
     setGames(data);
     setStats(calculateStats(data));
-  }, [user, isDemo]);
+  }, [isDemo]);
 
   useEffect(() => {
     loadGames();

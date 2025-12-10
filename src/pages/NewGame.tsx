@@ -14,7 +14,7 @@ import type { GameFormData } from '../types/game';
 
 export function NewGame() {
   const navigate = useNavigate();
-  const { user, isDemo } = useAuth();
+  const { isDemo } = useAuth();
   const [loading, setLoading] = useState(false);
   const [games, setGames] = useState<GameFormData[]>([{
     date: getLocalDate(),
@@ -26,8 +26,8 @@ export function NewGame() {
 
   useEffect(() => {
     async function fetchLastGame() {
-      // In demo mode (no user) we don't look at real Firestore data
-      if (!user || isDemo) return;
+      // In demo mode we don't look at real Firestore data
+      if (isDemo) return;
 
       try {
         const q = query(collection(db, 'games'), orderBy('created_at', 'desc'), limit(1));
@@ -47,7 +47,7 @@ export function NewGame() {
       }
     }
     fetchLastGame();
-  }, [user, isDemo]);
+  }, [isDemo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,8 +55,7 @@ export function NewGame() {
 
     try {
       for (const game of games) {
-        // Only use mock service if no user AND in demo mode
-        const { error } = (!user && isDemo)
+        const { error } = isDemo
           ? await addMockGame(game)
           : await addGame(game);
         if (error) throw error;
@@ -105,7 +104,7 @@ export function NewGame() {
               onChange={updates => updateGame(index, updates)}
               showRemove={games.length > 1}
               onRemove={() => removeGame(index)}
-              isDemo={!user && isDemo}
+              isDemo={isDemo}
             />
           ))}
 

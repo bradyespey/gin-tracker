@@ -2,8 +2,7 @@ import { Game, GameFormData } from '../types/game';
 
 /**
  * Generates 15 mock games spread over the past year with varying dates, winners, and game types.
- * Dates are calculated relative to the current date, with some days having multiple games
- * and some being months apart.
+ * Uses generic "User 1" and "User 2" to protect real user identities in demo mode.
  * @returns {Game[]} Array of 15 mock game objects
  */
 const generateMockGames = (): Game[] => {
@@ -14,21 +13,7 @@ const generateMockGames = (): Game[] => {
   
   // Create date distribution: some days with multiple games, some months apart
   const dateOffsets = [
-    0, // Today
-    1, // Yesterday
-    1, // Yesterday (second game)
-    3, // 3 days ago
-    7, // 1 week ago
-    14, // 2 weeks ago
-    30, // 1 month ago
-    45, // 1.5 months ago
-    60, // 2 months ago
-    90, // 3 months ago
-    120, // 4 months ago
-    150, // 5 months ago
-    180, // 6 months ago
-    240, // 8 months ago
-    365, // 1 year ago
+    0, 1, 1, 3, 7, 14, 30, 45, 60, 90, 120, 150, 180, 240, 365
   ];
   
   for (let i = 0; i < 15; i++) {
@@ -39,12 +24,12 @@ const generateMockGames = (): Game[] => {
     const isKnock = Math.random() > 0.5;
     const hasUndercut = isKnock && Math.random() > 0.6;
     const score = isKnock 
-      ? Math.floor(Math.random() * 20) + 5 // 5-25 for knock
-      : Math.floor(Math.random() * 10) + 25; // 25-35 for gin
+      ? Math.floor(Math.random() * 20) + 5
+      : Math.floor(Math.random() * 10) + 25;
     
-    const game: Game = {
+    games.push({
       id: `mock-${i + 1}`,
-      game_number: 15 - i, // Reverse order so most recent is highest number
+      game_number: 15 - i,
       date: dateStr,
       winner: winners[i],
       score: isKnock ? (hasUndercut ? Math.floor(Math.random() * 15) + 5 : score) : score,
@@ -54,9 +39,7 @@ const generateMockGames = (): Game[] => {
       undercut_by: hasUndercut ? (winners[i] === 'Brady' ? 'Jenny' : 'Brady') : undefined,
       created_at: date.toISOString(),
       updated_at: date.toISOString(),
-    };
-    
-    games.push(game);
+    });
   }
   
   return games;
@@ -72,11 +55,8 @@ let currentMockGames: Game[] = [...initialMockGames];
  * @returns {Promise<{data: Game[], error: null}>} Promise resolving to sorted mock games
  */
 export const fetchMockGames = async () => {
-  // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Return a copy to avoid mutation reference issues
-  // Sort by date/game_number similar to real service
   const sorted = [...currentMockGames].sort((a, b) => {
     const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
     if (dateCompare === 0) {

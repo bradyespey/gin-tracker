@@ -101,7 +101,7 @@ GinTracker/
 │   ├── context/            # AuthContext for Firebase Auth
 │   ├── hooks/              # Custom hooks (usePagination, useSortedGames)
 │   ├── lib/                # Core utilities (gameLogic, firebase, syncManager, indexedDB)
-│   ├── services/           # API services (gameService with offline support, demoGameService for demo mode)
+│   ├── services/           # API services (gameService with offline support)
 │   ├── types/             # TypeScript type definitions
 │   └── utils/             # Helper functions (dateUtils, gameUtils, numberFormat)
 ├── scripts/
@@ -122,12 +122,6 @@ GinTracker/
 - `addGame()`: Creates new game (online to Firestore, offline to IndexedDB)
 - `updateGame()`: Updates existing game with sync support
 - `deleteGame()`: Deletes game with offline fallback
-
-### Demo Game Service (`src/services/demoGameService.ts`)
-- `fetchMockGames()`: Returns in-memory mock games for demo mode (15 games over past year)
-- `addMockGame()`: Adds new game to in-memory storage (resets on refresh)
-- `updateMockGame()`: Updates mock game in memory (resets on refresh)
-- `deleteMockGame()`: Deletes mock game from memory (resets on refresh)
 
 ### Sync Manager (`src/lib/syncManager.ts`)
 - `syncGames()`: Syncs pending local games to Firestore when online
