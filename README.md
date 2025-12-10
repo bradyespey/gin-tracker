@@ -2,22 +2,24 @@
 **Scope**: This README replaces prior selected overview docs
 
 ## Overview
-Web application for tracking Gin Rummy games between two players (Brady and Jenny) with real-time score updates. Replaces manual Google Sheets tracking with a modern web interface featuring authentication, offline support, and comprehensive statistics.
+Web application for tracking Gin Rummy games between two players (Brady and Jenny) with real-time score updates. Replaces manual Google Sheets tracking with a modern web interface featuring authentication, offline support, comprehensive statistics, and automated weekly backups.
 
 ## Live and Admin
 - 🌐 **App URL**: https://gin.theespeys.com
 - 🚀 **Netlify Dashboard**: gintracker
-- 🗄️ **Supabase Console**: gintracker project
-- 🔐 **Google OAuth**: GCP Console with restricted emails
+- 🗄️ **Firebase Console**: gintracker-54301 project
+- 🔐 **Firebase Auth**: Google OAuth with email restrictions
 - 📊 **GitHub Repo**: https://github.com/bradyespey/gin-tracker
+- 💾 **Backups**: Automated weekly backups via GitHub Actions (data-backups/games.json)
 
 ## Tech Stack
 - ⚛️ **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
-- 🗄️ **Backend**: Supabase (PostgreSQL + Auth)
-- 🔐 **Auth**: Google OAuth with email restrictions
+- 🗄️ **Backend**: Firebase (Firestore + Auth)
+- 🔐 **Auth**: Firebase Google OAuth with email restrictions
 - 📱 **Offline**: IndexedDB + Service Workers for offline functionality
-- 🚀 **Hosting**: Netlify (frontend) + Supabase (backend)
+- 🚀 **Hosting**: Netlify (frontend) + Firebase (backend)
 - 🎨 **UI**: Lucide React icons + responsive design with dark mode
+- 🔄 **Backups**: GitHub Actions + Firebase Admin SDK
 
 ## Quick Start
 ```bash
@@ -31,17 +33,26 @@ npm run dev
 Required environment variables:
 
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=YOUR_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN=YOUR_PROJECT.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET=YOUR_PROJECT.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=YOUR_SENDER_ID
+VITE_FIREBASE_APP_ID=YOUR_APP_ID
 
 # Authentication
 VITE_ALLOWED_EMAILS=YOUR_EMAIL,YOUR_EMAIL_2,YOUR_EMAIL_3
-
-# Google OAuth (configured in Supabase)
-GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
-GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 ```
+
+**Firebase Setup**:
+1. Create Firebase project and enable Authentication (Google provider)
+2. Create Firestore database (production mode, us-south1 region)
+3. Deploy Firestore security rules: `firebase deploy --only firestore:rules`
+4. Add authorized domains: localhost, gintracker.netlify.app, gin.theespeys.com
+
+**GitHub Secrets** (for automated backups):
+- `FIREBASE_SERVICE_ACCOUNT`: Full JSON content from Firebase Service Account key
 
 ## Run Modes (Debug, Headless, Profiles)
 - 🐛 **Debug Mode**: `npm run dev` with browser dev tools for local development
@@ -49,22 +60,24 @@ GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 - 📱 **Offline Mode**: Service Worker enables full offline functionality with IndexedDB storage
 
 ## Scripts and Ops
-- 🔧 **Development**: `npm run dev` — Start local development server
+- 🔧 **Development**: `npm run dev` — Start local development server (port 5179)
 - 🏗️ **Build**: `npm run build` — TypeScript compilation + Vite build
 - 🔍 **Lint**: `npm run lint` — ESLint code checking
 - 👀 **Preview**: `npm run preview` — Preview production build locally
 - 🔄 **Sync**: Automatic online/offline data synchronization
+- 📦 **Deploy Watch**: `npm run deploy:watch` — Push to GitHub and monitor Netlify build
 
 ## Deploy
 - 🚀 **Frontend**: Automatic via GitHub integration to Netlify
 - 📦 **Build Command**: `npm run build`
 - 📁 **Publish Directory**: `dist`
 - 🌐 **Domains**: gin.theespeys.com (primary), gintracker.netlify.app
+- 🔥 **Firestore Rules**: Deploy with `firebase deploy --only firestore:rules`
 
 ## App Pages / Routes
-- 📊 **Dashboard** (`/`): Game statistics, recent games, and score summaries
-- 🆕 **New Game** (`/new-game`): Log new Gin Rummy games with scoring options
-- 📜 **Rules** (`/rules`): Gin Rummy rules and scoring explanations
+- 📊 **Dashboard** (`/gin`): Game statistics, recent games, and score summaries
+- 🆕 **New Game** (`/gin/new`): Log new Gin Rummy games with scoring options
+- 📜 **Rules** (`/gin/rules`): Gin Rummy rules and scoring explanations
 - 🔐 **Auth Callback** (`/auth/callback`): OAuth flow completion handler
 
 ## Directory Map
@@ -73,24 +86,62 @@ GinTracker/
 ├── src/
 │   ├── components/          # UI components (GameList, GameForm, AuthButton)
 │   ├── pages/              # App pages (Dashboard, NewGame, Rules)
-│   ├── context/            # AuthContext for Google OAuth
+│   ├── context/            # AuthContext for Firebase Auth
 │   ├── hooks/              # Custom hooks (usePagination, useSortedGames)
-│   ├── lib/                # Core utilities (gameLogic, supabase, syncManager)
+│   ├── lib/                # Core utilities (gameLogic, firebase, syncManager, indexedDB)
 │   ├── services/           # API services (gameService with offline support)
-│   ├── types/              # TypeScript type definitions
-│   └── utils/              # Helper functions (dateUtils, gameUtils)
-├── supabase/migrations/    # Database schema migrations
-├── public/sw.js           # Service Worker for offline functionality
+│   ├── types/             # TypeScript type definitions
+│   └── utils/             # Helper functions (dateUtils, gameUtils, numberFormat)
+├── scripts/
+│   ├── backup.js          # Firebase backup script (GitHub Actions)
+│   └── deploy-and-watch.sh # Netlify build monitoring script
+├── .github/workflows/
+│   └── backup.yml         # Weekly automated backup workflow
+├── data-backups/          # Automated backup storage (git-tracked)
+├── firestore.rules        # Firestore security rules
+├── firebase.json          # Firebase project configuration
 └── netlify.toml           # Netlify deployment configuration
 ```
 
+## Key Functions
+
+### Game Service (`src/services/gameService.ts`)
+- `fetchGames()`: Retrieves games from Firestore, merges with local pending games
+- `addGame()`: Creates new game (online to Firestore, offline to IndexedDB)
+- `updateGame()`: Updates existing game with sync support
+- `deleteGame()`: Deletes game with offline fallback
+
+### Sync Manager (`src/lib/syncManager.ts`)
+- `syncGames()`: Syncs pending local games to Firestore when online
+- `triggerSync()`: Manually triggers sync operation
+
+### Game Logic (`src/lib/gameLogic.ts`)
+- `calculateScore()`: Calculates game score (Gin vs Knock scenarios)
+- `calculateStats()`: Computes aggregate statistics (wins, averages, percentages)
+
+### IndexedDB (`src/lib/indexedDB.ts`)
+- `initDB()`: Initializes IndexedDB database
+- `saveGameLocally()`: Saves game to local storage
+- `getLocalGames()`: Retrieves all local games
+- `updateGameLocally()`: Updates local game
+- `deleteGameLocally()`: Deletes local game
+- `getNextGameNumber()`: Calculates next game number for offline games
+
+## Automated Backups
+Weekly automated backups run via GitHub Actions every Monday at midnight Central Time:
+- **Location**: `data-backups/games.json` (committed to Git)
+- **Manual Trigger**: GitHub Actions → Weekly Data Backup → Run workflow
+- **Verification**: Check commit history for "Automated data backup: YYYY-MM-DD"
+- **Restoration**: See `Guides/Firebase Data Backup Guide.md` for restore process
+
 ## Troubleshooting
-- 🔐 **Auth Issues**: Verify Google OAuth redirect URLs match deployed domains
+- 🔐 **Auth Issues**: Verify Firebase authorized domains include deployed URLs
 - 📱 **Offline Sync**: Check IndexedDB storage and Service Worker registration
-- 🗄️ **Database**: Supabase migrations handle schema updates automatically
+- 🗄️ **Database**: Firestore rules require authentication (deploy with `firebase deploy --only firestore:rules`)
 - 🎨 **Styling**: Tailwind CSS with dark mode based on system preferences
 - 📊 **Game Logic**: Scoring calculations handle Gin vs Knock scenarios with undercuts
-- 🔄 **Data Sync**: Automatic sync between online Supabase and offline IndexedDB
+- 🔄 **Data Sync**: Automatic sync between online Firestore and offline IndexedDB
+- 💾 **Backups**: Verify GitHub Actions workflow runs successfully and commits appear
 
 ## AI Handoff
-Read this README, scan the repo, prioritize core functions and env-safe areas, keep env and rules aligned with this file. Focus on game scoring logic, offline sync functionality, and authentication flow.
+Read this README, scan the repo, prioritize core functions and env-safe areas, keep env and rules aligned with this file. Focus on game scoring logic, offline sync functionality, Firebase authentication flow, and backup system. Firestore rules enforce authentication-only access (email restrictions handled in app code).
