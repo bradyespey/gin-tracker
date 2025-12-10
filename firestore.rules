@@ -1,19 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user email is authorized
-    function isAuthorizedUser() {
-      return request.auth != null && 
-        request.auth.token.email in [
-          'baespey@gmail.com',
-          'jennycespey@gmail.com', 
-          'bradyjennytx@gmail.com'
-        ];
+    // Helper function to check if user is authenticated
+    // Email restrictions are handled in the app code (AuthContext)
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // Allow authorized users to read/write all data
+    // Allow authenticated users to read/write all data
+    // Email allowlist is enforced in the React app via VITE_ALLOWED_EMAILS
     match /{document=**} {
-      allow read, write: if isAuthorizedUser();
+      allow read, write: if isAuthenticated();
     }
   }
 }
