@@ -132,7 +132,7 @@ export async function addGame(formData: GameFormData) {
   }
 }
 
-export async function fetchGames() {
+export async function fetchGames(): Promise<{ data: Game[]; error: Error | null }> {
   try {
     // Get local games first
     const localGames = await getLocalGames();

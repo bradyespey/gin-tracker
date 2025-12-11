@@ -28,11 +28,25 @@ export function Dashboard() {
   });
 
   const loadGames = useCallback(async () => {
-    const { data, error } = isDemo 
-      ? await fetchMockGames()
-      : await fetchGames();
-      
+    if (isDemo) {
+      const { data, error } = await fetchMockGames();
+      if (error) {
+        console.error('Error fetching mock games:', error);
+        return;
+      }
+      setGames(data);
+      setStats(calculateStats(data));
+      return;
+    }
+    
+    // Only fetch real games if authenticated
+    const { data, error } = await fetchGames();
     if (error) {
+      // Suppress permission errors in demo/public mode
+      if (error.message?.includes('permission') || error.message?.includes('Missing or insufficient')) {
+        console.warn('Firestore permission error (expected in demo mode):', error);
+        return;
+      }
       console.error('Error fetching games:', error);
       return;
     }
