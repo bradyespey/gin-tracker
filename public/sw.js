@@ -21,28 +21,11 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Sync games with server
+// Sync games with server (Firebase)
+// Note: Actual sync is handled by gameService.ts using Firebase
+// This is kept for service worker registration compatibility
 async function syncGames() {
-  const db = await openDB();
-  const pendingGames = await db.getAll('games', 'syncStatus', 'pending');
-  
-  for (const game of pendingGames) {
-    try {
-      const response = await fetch('/rest/v1/games', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': self.SUPABASE_KEY,
-          'Authorization': `Bearer ${self.SUPABASE_KEY}`
-        },
-        body: JSON.stringify(game)
-      });
-
-      if (response.ok) {
-        await db.delete('games', game.id);
-      }
-    } catch (error) {
-      console.error('Sync failed for game:', error);
-    }
-  }
+  // Sync is now handled client-side via Firebase
+  // Service worker sync events trigger client-side sync manager
+  console.log('Sync event received - handled by client-side sync manager');
 }
