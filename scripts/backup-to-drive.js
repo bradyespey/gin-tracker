@@ -32,7 +32,10 @@ const db = admin.firestore();
 // Initialize Google Drive
 const auth = new google.auth.GoogleAuth({
   credentials: driveServiceAccount,
-  scopes: ['https://www.googleapis.com/auth/drive.file'],
+  // NOTE:
+  // - drive.file often cannot "see" an existing folder that the service account didn't create.
+  // - We use full Drive scope so the service account can access folders explicitly shared with it.
+  scopes: ['https://www.googleapis.com/auth/drive'],
 });
 
 const drive = google.drive({ version: 'v3', auth });
@@ -47,7 +50,8 @@ async function testDriveConnection(folderId) {
   try {
     const response = await drive.files.get({
       fileId: folderId,
-      fields: 'id, name, mimeType'
+      fields: 'id, name, mimeType',
+      supportsAllDrives: true
     });
     console.log(`  ✅ Connected to Drive folder: "${response.data.name}" (${response.data.id})`);
     return true;
@@ -71,7 +75,9 @@ async function getOrCreateProjectFolder(parentFolderId, folderName) {
     const response = await drive.files.list({
       q: `name='${folderName}' and '${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields: 'files(id, name)',
-      spaces: 'drive'
+      spaces: 'drive',
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true
     });
 
     if (response.data.files && response.data.files.length > 0) {
@@ -89,7 +95,8 @@ async function getOrCreateProjectFolder(parentFolderId, folderName) {
 
     const folder = await drive.files.create({
       requestBody: folderMetadata,
-      fields: 'id'
+      fields: 'id',
+      supportsAllDrives: true
     });
 
     console.log(`  ✅ Created folder: ${folder.data.id}`);
@@ -127,7 +134,8 @@ async function uploadBackupToDrive(projectFolderId, backupData, timestamp) {
     const file = await drive.files.create({
       requestBody: fileMetadata,
       media: media,
-      fields: 'id, name, size'
+      fields: 'id, name, size',
+      supportsAllDrives: true
     });
 
     console.log(`  ✅ Uploaded: ${file.data.name} (${file.data.size} bytes)`);
@@ -151,7 +159,9 @@ async function cleanupOldBackups(projectFolderId) {
     q: `'${projectFolderId}' in parents and trashed=false and mimeType='application/json'`,
     fields: 'files(id, name, createdTime)',
     orderBy: 'createdTime desc',
-    spaces: 'drive'
+    spaces: 'drive',
+    includeItemsFromAllDrives: true,
+    supportsAllDrives: true
   });
 
   const files = response.data.files || [];
@@ -196,7 +206,7 @@ async function cleanupOldBackups(projectFolderId) {
   
   for (const file of oldBackups) {
     try {
-      await drive.files.delete({ fileId: file.id });
+      await drive.files.delete({ fileId: file.id, supportsAllDrives: true });
       const fileAge = Math.floor((now - new Date(file.createdTime)) / (24 * 60 * 60 * 1000));
       console.log(`    Deleted: ${file.name} (${fileAge} days old)`);
     } catch (error) {
