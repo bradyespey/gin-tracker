@@ -1,20 +1,28 @@
-name: Weekly Data Backup (DEPRECATED)
+name: Weekly Data Backup to Firebase Storage
 
 on:
-  schedule: [] # Disabled - never runs on schedule
-  workflow_dispatch: # Can still be manually triggered, but will fail
+  schedule:
+    # Run at midnight Central Time (06:00 UTC) every Monday
+    - cron: '0 6 * * 1'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - name: ⚠️ This workflow is deprecated
-        run: |
-          echo "❌ This workflow is DEPRECATED and no longer works."
-          echo ""
-          echo "✅ Please use 'Weekly Data Backup to Google Drive' instead:"
-          echo "   1. Go to Actions tab"
-          echo "   2. Select 'Weekly Data Backup to Google Drive'"
-          echo "   3. Click 'Run workflow'"
-          exit 1
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install firebase-admin
+
+      - name: Run Backup Script
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/backup-to-storage.js
 
