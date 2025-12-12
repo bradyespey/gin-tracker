@@ -85,6 +85,7 @@ VITE_ALLOWED_EMAILS=YOUR_EMAIL,YOUR_EMAIL_2,YOUR_EMAIL_3
 - 📁 **Publish Directory**: `dist`
 - 🌐 **Domains**: gin.theespeys.com (primary), gintracker.netlify.app
 - 🔥 **Firestore Rules**: Deploy with `firebase deploy --only firestore:rules`
+- 🖼️ **Build Image**: Ubuntu Noble 24.04 (upgraded from Focal 20.04)
 
 ## App Pages / Routes
 - 📊 **Dashboard** (`/gin`): Game statistics, recent games, and score summaries
