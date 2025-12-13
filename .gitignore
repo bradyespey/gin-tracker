@@ -73,10 +73,10 @@ gas/
 old/
 other/
 
-# Data backups (allow games.json to be tracked)
+# Data backups (allow encrypted backups to be tracked)
 data-backups/*
 !data-backups/.gitkeep
-!data-backups/games.json
+!data-backups/*.encrypted.json
 
 # Python
 .venv/
