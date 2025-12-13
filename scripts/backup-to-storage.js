@@ -16,7 +16,8 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const bucket = admin.storage().bucket();
+const storage = admin.storage();
+const bucket = storage.bucket();
 
 // Project-specific settings
 const PROJECT_NAME = 'GinTracker';
@@ -163,6 +164,19 @@ async function testStorageConnection() {
     return true;
   } catch (error) {
     console.error(`  ❌ Storage connection failed:`, error.message);
+    if (error.code === 404 || error.message.includes('does not exist')) {
+      console.error(`\n  📋 ACTION REQUIRED:`);
+      console.error(`  → Firebase Storage is not enabled for this project`);
+      console.error(`  → Enable it here: https://console.firebase.google.com/project/${firebaseServiceAccount.project_id}/storage`);
+      console.error(`  → Click "Get started" → Choose "Start in test mode" or "Start in production mode"`);
+      console.error(`  → Then re-run this backup workflow\n`);
+    } else if (error.code === 403) {
+      console.error(`\n  📋 ACTION REQUIRED:`);
+      console.error(`  → Service account needs Storage Admin permissions`);
+      console.error(`  → Grant permissions in: https://console.cloud.google.com/iam-admin/iam?project=${firebaseServiceAccount.project_id}`);
+      console.error(`  → Find: ${firebaseServiceAccount.client_email}`);
+      console.error(`  → Add role: "Storage Admin"\n`);
+    }
     throw error;
   }
 }
@@ -213,3 +227,5 @@ async function main() {
 }
 
 main();
+
+
