@@ -8,7 +8,10 @@ export default defineConfig({
   server: {
     port: 5179,
     host: true,
-    open: false
+    open: false,
+    watch: {
+      ignored: ['**/.env']
+    }
   },
   preview: {
     open: false
