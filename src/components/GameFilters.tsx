@@ -11,6 +11,7 @@ interface GameFiltersProps {
 }
 
 export interface GameFilters {
+  search?: string;
   winner?: 'Brady' | 'Jenny';
   type?: 'Gin' | 'Knock' | 'Knock + Undercut';
   wentFirst?: 'Brady' | 'Jenny';
@@ -19,6 +20,16 @@ export interface GameFilters {
 export function GameFilters({ onFilterChange, onReset, filters }: GameFiltersProps) {
   return (
     <div className="flex flex-wrap items-end gap-4 mb-4">
+      <div className="min-w-[14rem] flex-1">
+        <label className="block text-sm font-medium text-gray-600 dark:text-slate-400 mb-1">Search</label>
+        <input
+          type="text"
+          value={filters.search || ''}
+          onChange={(e) => onFilterChange({ ...filters, search: e.target.value || undefined })}
+          placeholder="Search date, score, or player..."
+          className="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-slate-200 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+        />
+      </div>
       <div>
         <label className="block text-sm font-medium text-gray-600 dark:text-slate-400 mb-1">Winner</label>
         <select

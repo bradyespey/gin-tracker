@@ -28,6 +28,18 @@ export function GameList({ games, onUpdate, isDemo }: GameListProps) {
   const { sortedGames, sortConfig, handleSort, resetSort } = useSortedGames(games);
 
   const filteredGames = sortedGames.filter(game => {
+    const query = filters.search?.trim().toLowerCase();
+    if (query) {
+      const haystack = [
+        game.date,
+        game.winner,
+        game.went_first,
+        String(game.score),
+        game.knock ? 'knock' : 'gin',
+        game.undercut_by || '',
+      ].join(' ').toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
     if (filters.winner && game.winner !== filters.winner) return false;
     if (filters.type === 'Gin' && game.knock) return false;
     if (filters.type === 'Knock' && !game.knock) return false;
@@ -112,6 +124,9 @@ export function GameList({ games, onUpdate, isDemo }: GameListProps) {
         onFilterChange={setFilters}
         onReset={resetFilters}
       />
+      <div className="mb-3 text-sm text-gray-500 dark:text-slate-400">
+        Showing {filteredGames.length} of {sortedGames.length} games
+      </div>
       <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-lg shadow">
         <table className="w-full">
           <GameTableHeader 

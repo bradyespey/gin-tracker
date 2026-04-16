@@ -93,3 +93,5 @@ venv/
 # Temporary files
 *.temp
 *.tmp
+
+docs/
